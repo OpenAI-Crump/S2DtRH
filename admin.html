@@ -52,6 +52,18 @@
             <button id="delete-btn" class="btn-danger hidden">Smazat</button>
             <button id="back-btn" class="btn-secondary">Zpět</button>
         </div>
+        <div id="device-link-box" class="device-link-box hidden">
+            <div class="preview-label">Odkaz na zařízení</div>
+            <div class="device-link-row">
+                <a id="device-link" href="#" target="_blank" class="device-link"></a>
+                <button id="copy-link-btn" type="button" class="copy-btn" title="Kopírovat do schránky">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/>
+                        <path d="M10.5 5.5V3a1.5 1.5 0 0 0-1.5-1.5H3A1.5 1.5 0 0 0 1.5 3v6A1.5 1.5 0 0 0 3 10.5h2.5"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
         <p id="editor-status" class="hidden"></p>
     </div>
 
@@ -87,6 +99,9 @@
     var elDeleteBtn = document.getElementById("delete-btn");
     var elBackBtn = document.getElementById("back-btn");
     var elEditorStatus = document.getElementById("editor-status");
+    var elDeviceLinkBox = document.getElementById("device-link-box");
+    var elDeviceLink = document.getElementById("device-link");
+    var elCopyLinkBtn = document.getElementById("copy-link-btn");
 
     function show(el) { el.classList.remove("hidden"); }
     function hide(el) { el.classList.add("hidden"); }
@@ -164,6 +179,7 @@
 
             elDeviceContent.value = "Načítání...";
             elDeviceContent.disabled = true;
+            updateDeviceLink();
 
             apiFetch("devices/" + dev.name + ".txt").then(function (r) {
                 if (!r.ok) throw new Error("HTTP " + r.status);
@@ -199,11 +215,24 @@
             editingName = "";
             hide(elDeleteBtn);
             updatePreview();
+            updateDeviceLink();
         }
     }
 
     function updatePreview() {
         elPreviewText.innerHTML = S2DtRH.formatText(elDeviceContent.value);
+    }
+
+    function updateDeviceLink() {
+        var id = elDeviceIdInput.value.trim();
+        if (id && /^[a-zA-Z0-9_\-]+$/.test(id)) {
+            var url = window.location.origin + "/?id=" + encodeURIComponent(id);
+            elDeviceLink.href = url;
+            elDeviceLink.textContent = url;
+            show(elDeviceLinkBox);
+        } else {
+            hide(elDeviceLinkBox);
+        }
     }
 
     function closeEditor() {
@@ -294,8 +323,22 @@
     // New device
     elNewBtn.addEventListener("click", function () { openEditor(null); });
 
-    // Live preview
+    // Live preview + link update
     elDeviceContent.addEventListener("input", updatePreview);
+    elDeviceIdInput.addEventListener("input", updateDeviceLink);
+
+    // Copy link to clipboard
+    elCopyLinkBtn.addEventListener("click", function () {
+        var url = elDeviceLink.href;
+        navigator.clipboard.writeText(url).then(function () {
+            elCopyLinkBtn.title = "Zkopírováno!";
+            elCopyLinkBtn.classList.add("copied");
+            setTimeout(function () {
+                elCopyLinkBtn.title = "Kopírovat do schránky";
+                elCopyLinkBtn.classList.remove("copied");
+            }, 1500);
+        });
+    });
 
     // Login
     elLoginForm.addEventListener("submit", function (e) {
