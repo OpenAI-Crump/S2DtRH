@@ -25,7 +25,7 @@
                 type="text"
                 id="code-input"
                 maxlength="5"
-                placeholder="YYMM#"
+                placeholder="*****"
                 autocomplete="off"
                 inputmode="text"
             >
@@ -68,10 +68,6 @@
     function show(el) { el.classList.remove("hidden"); }
     function hide(el) { el.classList.add("hidden"); }
 
-    /**
-     * Bezpečnostní kód odvozený z aktuálního data v České republice.
-     * Formát: YYMM# (např. 2502# pro únor 2025).
-     */
     function getExpectedCode() {
         var now = new Date();
         var parts = new Intl.DateTimeFormat("cs-CZ", {
