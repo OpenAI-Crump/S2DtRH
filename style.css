@@ -291,3 +291,49 @@ p {
     color: #888;
     margin-top: 0.25rem;
 }
+
+.device-link-box {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.device-link-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.device-link {
+    font-size: 0.85rem;
+    color: #2563eb;
+    word-break: break-all;
+    flex: 1;
+}
+
+.copy-btn {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #555;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.copy-btn:hover {
+    color: #2563eb;
+    border-color: #2563eb;
+}
+
+.copy-btn.copied {
+    color: #16a34a;
+    border-color: #16a34a;
+}
