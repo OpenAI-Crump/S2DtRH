@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informace o zařízení</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Stav: žádné zařízení v URL -->
+    <div id="no-device" class="card hidden">
+        <h1>Zařízení nenalezeno</h1>
+        <p>Tato stránka slouží k zobrazení informací o konkrétním zařízení. Použijte QR kód umístěný na zařízení.</p>
+    </div>
+
+    <!-- Stav: zadání bezpečnostního kódu -->
+    <div id="auth-gate" class="card hidden">
+        <h1>Přístup k zařízení</h1>
+        <p>Pro zobrazení informací zadejte bezpečnostní kód.</p>
+        <form id="code-form">
+            <input
+                type="text"
+                id="code-input"
+                maxlength="5"
+                placeholder="YYMM#"
+                autocomplete="off"
+                inputmode="text"
+            >
+            <button type="submit">Potvrdit</button>
+        </form>
+        <p id="code-error" class="error hidden">Nesprávný kód. Zkuste to znovu.</p>
+    </div>
+
+    <!-- Stav: zobrazení obsahu zařízení -->
+    <div id="device-content" class="card hidden">
+        <h1 id="device-title"></h1>
+        <pre id="device-text"></pre>
+    </div>
+
+    <!-- Stav: zařízení neexistuje -->
+    <div id="device-not-found" class="card hidden">
+        <h1>Zařízení nenalezeno</h1>
+        <p>Soubor pro toto zařízení neexistuje. Zkontrolujte QR kód nebo kontaktujte správce.</p>
+    </div>
+
+</div>
+
+<script>
+(function () {
+    "use strict";
+
+    var params = new URLSearchParams(window.location.search);
+    var deviceId = params.get("id");
+
+    var elNoDevice = document.getElementById("no-device");
+    var elAuthGate = document.getElementById("auth-gate");
+    var elContent = document.getElementById("device-content");
+    var elNotFound = document.getElementById("device-not-found");
+    var elCodeForm = document.getElementById("code-form");
+    var elCodeInput = document.getElementById("code-input");
+    var elCodeError = document.getElementById("code-error");
+    var elDeviceTitle = document.getElementById("device-title");
+    var elDeviceText = document.getElementById("device-text");
+
+    function show(el) { el.classList.remove("hidden"); }
+    function hide(el) { el.classList.add("hidden"); }
+
+    /**
+     * Bezpečnostní kód odvozený z aktuálního data v České republice.
+     * Formát: YYMM# (např. 2502# pro únor 2025).
+     */
+    function getExpectedCode() {
+        var now = new Date();
+        var parts = new Intl.DateTimeFormat("cs-CZ", {
+            timeZone: "Europe/Prague",
+            year: "2-digit",
+            month: "2-digit"
+        }).formatToParts(now);
+
+        var year = "";
+        var month = "";
+        for (var i = 0; i < parts.length; i++) {
+            if (parts[i].type === "year") year = parts[i].value;
+            if (parts[i].type === "month") month = parts[i].value;
+        }
+        return year + month + "#";
+    }
+
+    /**
+     * Načte obsah .txt souboru zařízení a zobrazí ho.
+     */
+    function loadDevice(id) {
+        var url = "devices/" + encodeURIComponent(id) + ".txt";
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                elDeviceTitle.textContent = id;
+                elDeviceText.textContent = xhr.responseText;
+                show(elContent);
+            } else {
+                show(elNotFound);
+            }
+        };
+        xhr.onerror = function () {
+            show(elNotFound);
+        };
+        xhr.send();
+    }
+
+    /* Hlavní logika */
+
+    if (!deviceId) {
+        show(elNoDevice);
+        return;
+    }
+
+    /* Jednoduchá validace ID – povoleny jen bezpečné znaky */
+    if (!/^[a-zA-Z0-9_\-]+$/.test(deviceId)) {
+        show(elNoDevice);
+        return;
+    }
+
+    show(elAuthGate);
+    elCodeInput.focus();
+
+    elCodeForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var entered = elCodeInput.value.trim();
+        var expected = getExpectedCode();
+
+        if (entered === expected) {
+            hide(elAuthGate);
+            hide(elCodeError);
+            loadDevice(deviceId);
+        } else {
+            show(elCodeError);
+            elCodeInput.value = "";
+            elCodeInput.focus();
+        }
+    });
+})();
+</script>
+
+</body>
+</html>

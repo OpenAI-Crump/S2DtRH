@@ -1,0 +1,10 @@
+Čerpadlo hlavní okruh – budova A, suterén, místnost S04
+
+Typ: Grundfos MAGNA3 40-120 F
+Sériové číslo: 98375033
+Rok instalace: 2021
+
+Pravidelná údržba: kontrola těsnosti a tlaku 1× ročně (vždy v lednu).
+Kontakt pro servis: Jan Novák, tel. 602 123 456, novak@example.cz
+
+Poznámka: Při poklesu tlaku pod 1,5 bar zkontrolovat expanzní nádobu v místnosti S05.
