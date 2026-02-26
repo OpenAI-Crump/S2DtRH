@@ -4,6 +4,8 @@ Statická webová stránka pro zobrazování provozních informací o zařízen�
 Na každé zařízení se nalepí QR kód s odkazem — po naskenování a zadání
 přístupového kódu se zobrazí příslušný text.
 
+https://openai-crump.github.io/S2DtRH/?id=
+
 ## Jak to funguje
 
 1. V složce `devices/` leží `.txt` soubory — každý soubor = jedno zařízení.
