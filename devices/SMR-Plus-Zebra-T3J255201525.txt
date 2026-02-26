@@ -1,15 +1,1 @@
-Zebra Technologies
-ZTC ZT231-203dpi ZPL
-T3J255201525
-(udrzba sklad)
-
-Nakoupeno:
-2026-02-25
-
-https://192.168.2.222/
-
-Front Panel pin:
-8569
-
-Inventory link:
-https://itkovarcz.sharepoint.com/sites/IT-Kovar/Lists/Sprvce%20prostedku%20BOINT%20CZ/DispForm.aspx?ID=165&e=ZoDvZO
+CeAlNJy1W6mGvUTpdxiDwT8Sv72go5gy4gGVsZLFuYTi7m2dR9VSVzfXPgh7bHcZUTnmQX4pImMDgjsqXy7EiviVkMp8kGaq6fMWmlHGSV9EfLmbCMtEg0JBOAfkMKi1QJzAczXZLNXlncIa2qQ3S4OgKSn7w/ywhaI0G/sCfeB4sUMreJQNWAWo29vUa3FwBh3lo1++GRuQJn+Ho+73IaA6Ah1iVjUJccLuonDtXlUf/PU0E/T14XoyA8tusWyH2oL5NSHl7oROkXM0PjmeCHPwKF6raudWgF6uZ61GX6usN9yJXdshC+ehMX+mUFpafWkKoQO5XvNexSqvX/3NpfQd705H7bYRWZpmGUq+bxEdlHoxzD03pNeJ+Nc4FJ/F3IqEQuZDq4SiYdo=

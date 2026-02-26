@@ -166,11 +166,18 @@
             elDeviceContent.disabled = true;
 
             apiFetch("devices/" + dev.name + ".txt").then(function (r) {
+                if (!r.ok) throw new Error("HTTP " + r.status);
                 return r.json();
             }).then(function (data) {
                 editingSha = data.sha;
-                var raw = atob(data.content.replace(/\s/g, ""));
-                return S2DtRH.decrypt(raw).catch(function () {
+                if (!data.content) throw new Error("Prázdný soubor");
+                var binary = atob(data.content.replace(/\s/g, ""));
+                var bytes = new Uint8Array(binary.length);
+                for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                var raw = new TextDecoder("utf-8").decode(bytes);
+                return Promise.resolve().then(function () {
+                    return S2DtRH.decrypt(raw.trim());
+                }).catch(function () {
                     return raw;
                 });
             }).then(function (plaintext) {

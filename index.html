@@ -86,7 +86,9 @@
         xhr.onload = function () {
             if (xhr.status === 200) {
                 var raw = xhr.responseText.trim();
-                S2DtRH.decrypt(raw).catch(function () {
+                Promise.resolve().then(function () {
+                    return S2DtRH.decrypt(raw);
+                }).catch(function () {
                     return raw;
                 }).then(function (text) {
                     elDeviceTitle.textContent = id;
