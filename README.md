@@ -2,24 +2,14 @@
 
 Statická webová stránka pro zobrazování provozních informací o zařízeních.
 Na každé zařízení se nalepí QR kód s odkazem — po naskenování a zadání
-bezpečnostního kódu se zobrazí příslušný text.
+přístupového kódu se zobrazí příslušný text.
 
 ## Jak to funguje
 
 1. V složce `devices/` leží `.txt` soubory — každý soubor = jedno zařízení.
 2. Název souboru (bez `.txt`) je zároveň ID zařízení v URL.
 3. QR kód odkazuje na: `https://<doména>/?id=nazev-souboru`
-4. Návštěvník zadá bezpečnostní kód a uvidí obsah souboru.
-
-## Bezpečnostní kód
-
-Kód se mění každý měsíc a má formát **YYMM#** (české časové pásmo):
-
-| Měsíc          | Kód    |
-|----------------|--------|
-| únor 2025      | 2502#  |
-| prosinec 2030  | 3012#  |
-| únor 2026      | 2602#  |
+4. Návštěvník zadá přístupový kód a uvidí obsah souboru.
 
 ## Přidání nového zařízení
 
