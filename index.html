@@ -32,7 +32,7 @@
 
     <div id="device-content" class="card hidden">
         <h1 id="device-title"></h1>
-        <pre id="device-text"></pre>
+        <div id="device-text"></div>
     </div>
 
     <div id="device-not-found" class="card hidden">
@@ -41,6 +41,7 @@
 
 </div>
 
+<script src="crypto.js"></script>
 <script>
 (function () {
     "use strict";
@@ -84,9 +85,14 @@
         xhr.open("GET", url, true);
         xhr.onload = function () {
             if (xhr.status === 200) {
-                elDeviceTitle.textContent = id;
-                elDeviceText.textContent = xhr.responseText;
-                show(elContent);
+                var raw = xhr.responseText.trim();
+                S2DtRH.decrypt(raw).catch(function () {
+                    return raw;
+                }).then(function (text) {
+                    elDeviceTitle.textContent = id;
+                    elDeviceText.innerHTML = S2DtRH.formatText(text);
+                    show(elContent);
+                });
             } else {
                 show(elNotFound);
             }

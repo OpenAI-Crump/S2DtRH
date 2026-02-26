@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin – Device Info</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container admin-container">
+
+    <!-- Login -->
+    <div id="admin-login" class="card">
+        <h1>Administrace</h1>
+        <p>Přihlaste se pro správu zařízení.</p>
+        <form id="login-form" class="admin-form">
+            <input type="password" id="admin-pass" placeholder="Heslo administrátora" autocomplete="off">
+            <input type="text" id="github-pat" placeholder="GitHub Personal Access Token" autocomplete="off">
+            <button type="submit">Přihlásit</button>
+        </form>
+        <p id="login-error" class="error hidden">Neplatné heslo nebo PAT.</p>
+    </div>
+
+    <!-- Device list -->
+    <div id="admin-panel" class="card hidden">
+        <div class="panel-header">
+            <h1>Zařízení</h1>
+            <button id="new-device-btn" class="btn-small">+ Nové</button>
+        </div>
+        <div id="device-list"></div>
+        <p id="list-empty" class="hint hidden">Žádná zařízení. Přidejte první.</p>
+        <p id="list-error" class="error hidden"></p>
+    </div>
+
+    <!-- Editor -->
+    <div id="editor" class="card hidden">
+        <h1 id="editor-title">Nové zařízení</h1>
+        <form id="editor-form" class="admin-form">
+            <label for="device-id-input">ID zařízení</label>
+            <input type="text" id="device-id-input" placeholder="napr. cerpadlo-A-S04" autocomplete="off">
+            <label for="device-content">Obsah</label>
+            <textarea id="device-content" rows="10" placeholder="Text zařízení..."></textarea>
+        </form>
+        <p class="hint">Text mezi _podtržítky_ se zobrazí <strong>tučně</strong>.</p>
+        <div id="preview-box">
+            <div class="preview-label">Náhled</div>
+            <div id="preview-text"></div>
+        </div>
+        <div class="editor-actions">
+            <button id="save-btn">Uložit</button>
+            <button id="delete-btn" class="btn-danger hidden">Smazat</button>
+            <button id="back-btn" class="btn-secondary">Zpět</button>
+        </div>
+        <p id="editor-status" class="hidden"></p>
+    </div>
+
+</div>
+
+<script src="crypto.js"></script>
+<script>
+(function () {
+    "use strict";
+
+    var githubPat = "";
+    var editingSha = null;
+    var editingName = "";
+
+    var elLogin = document.getElementById("admin-login");
+    var elLoginForm = document.getElementById("login-form");
+    var elAdminPass = document.getElementById("admin-pass");
+    var elGithubPat = document.getElementById("github-pat");
+    var elLoginError = document.getElementById("login-error");
+
+    var elPanel = document.getElementById("admin-panel");
+    var elDeviceList = document.getElementById("device-list");
+    var elListEmpty = document.getElementById("list-empty");
+    var elListError = document.getElementById("list-error");
+    var elNewBtn = document.getElementById("new-device-btn");
+
+    var elEditor = document.getElementById("editor");
+    var elEditorTitle = document.getElementById("editor-title");
+    var elDeviceIdInput = document.getElementById("device-id-input");
+    var elDeviceContent = document.getElementById("device-content");
+    var elPreviewText = document.getElementById("preview-text");
+    var elSaveBtn = document.getElementById("save-btn");
+    var elDeleteBtn = document.getElementById("delete-btn");
+    var elBackBtn = document.getElementById("back-btn");
+    var elEditorStatus = document.getElementById("editor-status");
+
+    function show(el) { el.classList.remove("hidden"); }
+    function hide(el) { el.classList.add("hidden"); }
+
+    function showStatus(msg, isError) {
+        elEditorStatus.textContent = msg;
+        elEditorStatus.className = isError ? "error" : "success";
+        show(elEditorStatus);
+        if (!isError) setTimeout(function () { hide(elEditorStatus); }, 3000);
+    }
+
+    function apiUrl(path) {
+        return "https://api.github.com/repos/" + S2DtRH.GITHUB_OWNER + "/" + S2DtRH.GITHUB_REPO + "/contents/" + path;
+    }
+
+    function apiFetch(path, options) {
+        options = options || {};
+        options.headers = options.headers || {};
+        options.headers["Authorization"] = "token " + githubPat;
+        options.headers["Accept"] = "application/vnd.github.v3+json";
+        if (options.body) options.headers["Content-Type"] = "application/json";
+        return fetch(apiUrl(path), options);
+    }
+
+    function loadDeviceList() {
+        hide(elListEmpty);
+        hide(elListError);
+        elDeviceList.innerHTML = '<p class="hint">Načítání...</p>';
+
+        apiFetch("devices").then(function (r) {
+            if (r.status === 404) return [];
+            return r.json();
+        }).then(function (files) {
+            if (!Array.isArray(files)) files = [];
+            var devices = files.filter(function (f) {
+                return f.name.endsWith(".txt");
+            });
+
+            elDeviceList.innerHTML = "";
+
+            if (devices.length === 0) {
+                show(elListEmpty);
+                return;
+            }
+
+            devices.forEach(function (f) {
+                var name = f.name.replace(/\.txt$/, "");
+                var item = document.createElement("div");
+                item.className = "device-list-item";
+                item.textContent = name;
+                item.addEventListener("click", function () {
+                    openEditor({ name: name, sha: f.sha });
+                });
+                elDeviceList.appendChild(item);
+            });
+        }).catch(function (err) {
+            elDeviceList.innerHTML = "";
+            elListError.textContent = "Chyba: " + err.message;
+            show(elListError);
+        });
+    }
+
+    function openEditor(dev) {
+        hide(elPanel);
+        show(elEditor);
+        hide(elEditorStatus);
+
+        if (dev) {
+            elEditorTitle.textContent = "Upravit: " + dev.name;
+            elDeviceIdInput.value = dev.name;
+            elDeviceIdInput.readOnly = true;
+            editingSha = dev.sha;
+            editingName = dev.name;
+            show(elDeleteBtn);
+
+            elDeviceContent.value = "Načítání...";
+            elDeviceContent.disabled = true;
+
+            apiFetch("devices/" + dev.name + ".txt").then(function (r) {
+                return r.json();
+            }).then(function (data) {
+                editingSha = data.sha;
+                var raw = atob(data.content.replace(/\s/g, ""));
+                return S2DtRH.decrypt(raw).catch(function () {
+                    return raw;
+                });
+            }).then(function (plaintext) {
+                elDeviceContent.value = plaintext;
+                elDeviceContent.disabled = false;
+                updatePreview();
+            }).catch(function (err) {
+                elDeviceContent.value = "";
+                elDeviceContent.disabled = false;
+                showStatus("Nepodařilo se načíst: " + err.message, true);
+            });
+        } else {
+            elEditorTitle.textContent = "Nové zařízení";
+            elDeviceIdInput.value = "";
+            elDeviceIdInput.readOnly = false;
+            elDeviceContent.value = "";
+            elDeviceContent.disabled = false;
+            editingSha = null;
+            editingName = "";
+            hide(elDeleteBtn);
+            updatePreview();
+        }
+    }
+
+    function updatePreview() {
+        elPreviewText.innerHTML = S2DtRH.formatText(elDeviceContent.value);
+    }
+
+    function closeEditor() {
+        hide(elEditor);
+        show(elPanel);
+        loadDeviceList();
+    }
+
+    // Save
+    elSaveBtn.addEventListener("click", function () {
+        var id = elDeviceIdInput.value.trim();
+        var content = elDeviceContent.value;
+
+        if (!id) { showStatus("Zadejte ID zařízení.", true); return; }
+        if (!/^[a-zA-Z0-9_\-]+$/.test(id)) {
+            showStatus("ID může obsahovat pouze písmena, čísla, pomlčky a podtržítka.", true);
+            return;
+        }
+        if (!content.trim()) { showStatus("Obsah nesmí být prázdný.", true); return; }
+
+        elSaveBtn.disabled = true;
+        elSaveBtn.textContent = "Ukládání...";
+
+        S2DtRH.encrypt(content).then(function (encrypted) {
+            var body = {
+                message: (editingSha ? "Update " : "Create ") + id + ".txt",
+                content: btoa(encrypted)
+            };
+            if (editingSha) body.sha = editingSha;
+
+            return apiFetch("devices/" + id + ".txt", {
+                method: "PUT",
+                body: JSON.stringify(body)
+            });
+        }).then(function (r) {
+            return r.json();
+        }).then(function (data) {
+            if (data.content) {
+                editingSha = data.content.sha;
+                editingName = id;
+                elDeviceIdInput.readOnly = true;
+                show(elDeleteBtn);
+                showStatus("Uloženo.", false);
+            } else {
+                showStatus("Chyba: " + (data.message || "Neznámá chyba"), true);
+            }
+        }).catch(function (err) {
+            showStatus("Chyba: " + err.message, true);
+        }).then(function () {
+            elSaveBtn.disabled = false;
+            elSaveBtn.textContent = "Uložit";
+        });
+    });
+
+    // Delete
+    elDeleteBtn.addEventListener("click", function () {
+        if (!editingSha || !editingName) return;
+        if (!confirm('Opravdu smazat zařízení "' + editingName + '"?')) return;
+
+        elDeleteBtn.disabled = true;
+        elDeleteBtn.textContent = "Mazání...";
+
+        apiFetch("devices/" + editingName + ".txt", {
+            method: "DELETE",
+            body: JSON.stringify({
+                message: "Delete " + editingName + ".txt",
+                sha: editingSha
+            })
+        }).then(function (r) {
+            if (r.ok) {
+                closeEditor();
+            } else {
+                return r.json().then(function (d) {
+                    showStatus("Chyba: " + (d.message || "Neznámá chyba"), true);
+                });
+            }
+        }).catch(function (err) {
+            showStatus("Chyba: " + err.message, true);
+        }).then(function () {
+            elDeleteBtn.disabled = false;
+            elDeleteBtn.textContent = "Smazat";
+        });
+    });
+
+    // Back
+    elBackBtn.addEventListener("click", closeEditor);
+
+    // New device
+    elNewBtn.addEventListener("click", function () { openEditor(null); });
+
+    // Live preview
+    elDeviceContent.addEventListener("input", updatePreview);
+
+    // Login
+    elLoginForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        hide(elLoginError);
+        var pass = elAdminPass.value;
+        githubPat = elGithubPat.value.trim();
+
+        if (!githubPat) {
+            elLoginError.textContent = "Zadejte GitHub PAT.";
+            show(elLoginError);
+            return;
+        }
+
+        S2DtRH.sha256(pass).then(function (hash) {
+            if (hash === S2DtRH.ADMIN_HASH) {
+                hide(elLogin);
+                show(elPanel);
+                loadDeviceList();
+            } else {
+                elLoginError.textContent = "Neplatné heslo.";
+                show(elLoginError);
+                elAdminPass.value = "";
+                elAdminPass.focus();
+            }
+        });
+    });
+})();
+</script>
+
+</body>
+</html>

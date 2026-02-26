@@ -112,3 +112,182 @@ p {
     word-wrap: break-word;
     color: #333;
 }
+
+/* Admin layout */
+
+.admin-container {
+    max-width: 500px;
+}
+
+.admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.admin-form label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #555;
+    margin-top: 0.25rem;
+}
+
+.admin-form input,
+.admin-form textarea {
+    width: 100%;
+    font-size: 0.9rem;
+    padding: 0.6rem 0.75rem;
+    border: 2px solid #d0d5dd;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.15s;
+    font-family: inherit;
+}
+
+.admin-form input:focus,
+.admin-form textarea:focus {
+    border-color: #2563eb;
+}
+
+.admin-form textarea {
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.admin-form button {
+    display: block;
+    width: 100%;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.6rem 1rem;
+    margin-top: 0.25rem;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.admin-form button:hover {
+    background: #1d4ed8;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.panel-header h1 {
+    margin-bottom: 0;
+}
+
+.device-list-item {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #e5e7eb;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #333;
+    transition: color 0.15s;
+}
+
+.device-list-item:hover {
+    color: #2563eb;
+}
+
+.btn-small {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.4rem 0.75rem;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-small:hover {
+    background: #1d4ed8;
+}
+
+.editor-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.editor-actions button {
+    flex: 1;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    color: #fff;
+}
+
+#save-btn {
+    background: #2563eb;
+}
+
+#save-btn:hover {
+    background: #1d4ed8;
+}
+
+.btn-danger {
+    background: #dc2626;
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+}
+
+.btn-secondary {
+    background: #6b7280;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+}
+
+#preview-box {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.preview-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+#preview-text {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: #333;
+}
+
+.success {
+    color: #16a34a;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.hint {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 0.25rem;
+}
