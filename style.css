@@ -337,3 +337,26 @@ p {
     color: #16a34a;
     border-color: #16a34a;
 }
+
+.btn-export {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    margin-top: 0.75rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #555;
+    background: #f8f9fa;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.btn-export:hover {
+    color: #2563eb;
+    border-color: #2563eb;
+}
