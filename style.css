@@ -139,6 +139,57 @@ p {
     background: #1d4ed8;
 }
 
+/* QR Scanner */
+
+.scan-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.7rem 1rem;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.scan-btn:hover {
+    background: #1d4ed8;
+}
+
+#scanner-container {
+    margin-top: 0.75rem;
+}
+
+#qr-reader {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.scan-stop-btn {
+    display: block;
+    width: 100%;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.6rem 1rem;
+    margin-top: 0.5rem;
+    background: #6b7280;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.scan-stop-btn:hover {
+    background: #4b5563;
+}
+
 /* Admin layout */
 
 .admin-container {
