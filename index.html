@@ -33,6 +33,10 @@
     <div id="device-content" class="card hidden">
         <h1 id="device-title"></h1>
         <div id="device-text"></div>
+        <div id="device-actions" class="device-actions hidden">
+            <a id="inventory-btn" href="#" target="_blank" class="action-btn hidden">Show in inventory</a>
+            <a id="dell-btn" href="#" target="_blank" class="action-btn hidden">Show in Dell support</a>
+        </div>
     </div>
 
     <div id="device-not-found" class="card hidden">
@@ -58,6 +62,9 @@
     var elCodeError = document.getElementById("code-error");
     var elDeviceTitle = document.getElementById("device-title");
     var elDeviceText = document.getElementById("device-text");
+    var elDeviceActions = document.getElementById("device-actions");
+    var elInventoryBtn = document.getElementById("inventory-btn");
+    var elDellBtn = document.getElementById("dell-btn");
 
     function show(el) { el.classList.remove("hidden"); }
     function hide(el) { el.classList.add("hidden"); }
@@ -91,8 +98,21 @@
                 }).catch(function () {
                     return raw;
                 }).then(function (text) {
+                    var device = S2DtRH.parseDeviceData(text);
                     elDeviceTitle.textContent = id;
-                    elDeviceText.innerHTML = S2DtRH.formatText(text);
+                    elDeviceText.innerHTML = S2DtRH.formatText(device.content);
+                    var hasActions = false;
+                    if (device.inventoryLink) {
+                        elInventoryBtn.href = device.inventoryLink;
+                        show(elInventoryBtn);
+                        hasActions = true;
+                    }
+                    if (device.serviceTag) {
+                        elDellBtn.href = "https://www.dell.com/support/product-details/en-us/servicetag/" + encodeURIComponent(device.serviceTag);
+                        show(elDellBtn);
+                        hasActions = true;
+                    }
+                    if (hasActions) show(elDeviceActions);
                     show(elContent);
                 });
             } else {

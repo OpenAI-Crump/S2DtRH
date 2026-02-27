@@ -97,6 +97,28 @@
                     return b.toString(16).padStart(2, "0");
                 }).join("");
             });
+        },
+
+        parseDeviceData: function (decrypted) {
+            try {
+                var data = JSON.parse(decrypted);
+                if (typeof data === "object" && data !== null && typeof data.content === "string") {
+                    return {
+                        content: data.content,
+                        inventoryLink: data.inventoryLink || "",
+                        serviceTag: data.serviceTag || ""
+                    };
+                }
+            } catch (e) {}
+            return { content: decrypted, inventoryLink: "", serviceTag: "" };
+        },
+
+        serializeDeviceData: function (content, inventoryLink, serviceTag) {
+            return JSON.stringify({
+                content: content,
+                inventoryLink: inventoryLink || "",
+                serviceTag: serviceTag || ""
+            });
         }
     };
 })(window);

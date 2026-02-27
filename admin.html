@@ -32,13 +32,23 @@
         <div id="device-list"></div>
         <p id="list-empty" class="hint hidden">Žádná zařízení. Přidejte první.</p>
         <p id="list-error" class="error hidden"></p>
-        <button id="export-btn" class="btn-export hidden">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M8 2v8m0 0L5 7m3 3 3-3"/>
-                <path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2"/>
-            </svg>
-            Export zálohy (.zip)
-        </button>
+        <div class="panel-actions">
+            <button id="export-btn" class="btn-export hidden">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 2v8m0 0L5 7m3 3 3-3"/>
+                    <path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2"/>
+                </svg>
+                Export zálohy (.zip)
+            </button>
+            <button id="import-btn" class="btn-export hidden">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 10V2m0 0L5 5m3-3 3 3"/>
+                    <path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2"/>
+                </svg>
+                Import zálohy (.zip)
+            </button>
+            <input type="file" id="import-file" accept=".zip" class="hidden">
+        </div>
     </div>
 
     <!-- Editor -->
@@ -49,6 +59,10 @@
             <input type="text" id="device-id-input" placeholder="napr. cerpadlo-A-S04" autocomplete="off">
             <label for="device-content">Obsah</label>
             <textarea id="device-content" rows="10" placeholder="Text zařízení..."></textarea>
+            <label for="inventory-link-input">Odkaz na inventář (volitelné)</label>
+            <input type="url" id="inventory-link-input" placeholder="https://sharepoint.com/..." autocomplete="off">
+            <label for="service-tag-input">Dell Service Tag (volitelné)</label>
+            <input type="text" id="service-tag-input" placeholder="např. 8TFD1D4" autocomplete="off">
         </form>
         <p class="hint">Text mezi _podtržítky_ se zobrazí <strong>tučně</strong>.</p>
         <div id="preview-box">
@@ -98,11 +112,15 @@
     var elListError = document.getElementById("list-error");
     var elNewBtn = document.getElementById("new-device-btn");
     var elExportBtn = document.getElementById("export-btn");
+    var elImportBtn = document.getElementById("import-btn");
+    var elImportFile = document.getElementById("import-file");
 
     var elEditor = document.getElementById("editor");
     var elEditorTitle = document.getElementById("editor-title");
     var elDeviceIdInput = document.getElementById("device-id-input");
     var elDeviceContent = document.getElementById("device-content");
+    var elInventoryLink = document.getElementById("inventory-link-input");
+    var elServiceTag = document.getElementById("service-tag-input");
     var elPreviewText = document.getElementById("preview-text");
     var elSaveBtn = document.getElementById("save-btn");
     var elDeleteBtn = document.getElementById("delete-btn");
@@ -139,6 +157,7 @@
         hide(elListEmpty);
         hide(elListError);
         hide(elExportBtn);
+        hide(elImportBtn);
         elDeviceList.innerHTML = '<p class="hint">Načítání...</p>';
 
         apiFetch("devices").then(function (r) {
@@ -154,6 +173,7 @@
 
             if (devices.length === 0) {
                 show(elListEmpty);
+                show(elImportBtn);
                 return;
             }
 
@@ -169,6 +189,7 @@
             });
 
             show(elExportBtn);
+            show(elImportBtn);
         }).catch(function (err) {
             elDeviceList.innerHTML = "";
             elListError.textContent = "Chyba: " + err.message;
@@ -192,6 +213,8 @@
         hide(elPanel);
         show(elEditor);
         hide(elEditorStatus);
+        elInventoryLink.value = "";
+        elServiceTag.value = "";
 
         if (dev) {
             elEditorTitle.textContent = "Upravit: " + dev.name;
@@ -213,7 +236,10 @@
                 if (!data.content) throw new Error("Prázdný soubor");
                 return decodeFileContent(data);
             }).then(function (plaintext) {
-                elDeviceContent.value = plaintext;
+                var device = S2DtRH.parseDeviceData(plaintext);
+                elDeviceContent.value = device.content;
+                elInventoryLink.value = device.inventoryLink;
+                elServiceTag.value = device.serviceTag;
                 elDeviceContent.disabled = false;
                 updatePreview();
             }).catch(function (err) {
@@ -261,6 +287,8 @@
     elSaveBtn.addEventListener("click", function () {
         var id = elDeviceIdInput.value.trim();
         var content = elDeviceContent.value;
+        var inventoryLink = elInventoryLink.value.trim();
+        var serviceTag = elServiceTag.value.trim();
 
         if (!id) { showStatus("Zadejte ID zařízení.", true); return; }
         if (!/^[a-zA-Z0-9_\-]+$/.test(id)) {
@@ -272,7 +300,9 @@
         elSaveBtn.disabled = true;
         elSaveBtn.textContent = "Ukládání...";
 
-        S2DtRH.encrypt(content).then(function (encrypted) {
+        var deviceData = S2DtRH.serializeDeviceData(content, inventoryLink, serviceTag);
+
+        S2DtRH.encrypt(deviceData).then(function (encrypted) {
             var body = {
                 message: (editingSha ? "Update " : "Create ") + id + ".txt",
                 content: btoa(encrypted)
@@ -308,30 +338,45 @@
         if (!editingName) return;
         if (!confirm('Opravdu smazat zařízení "' + editingName + '"?')) return;
 
+        var deviceName = editingName;
         elDeleteBtn.disabled = true;
         elDeleteBtn.textContent = "Mazání...";
 
-        apiFetch("devices/" + editingName + ".txt").then(function (r) {
-            if (!r.ok) throw new Error("HTTP " + r.status);
+        apiFetch("devices/" + deviceName + ".txt").then(function (r) {
+            if (!r.ok) throw new Error("Soubor nenalezen (HTTP " + r.status + ")");
             return r.json();
         }).then(function (data) {
-            return apiFetch("devices/" + editingName + ".txt", {
+            return apiFetch("devices/" + deviceName + ".txt", {
                 method: "DELETE",
                 body: JSON.stringify({
-                    message: "Delete " + editingName + ".txt",
+                    message: "Delete " + deviceName + ".txt",
                     sha: data.sha
                 })
             });
         }).then(function (r) {
-            if (r.ok) {
-                closeEditor();
-            } else {
+            if (!r.ok) {
                 return r.json().then(function (d) {
-                    showStatus("Chyba: " + (d.message || "Neznámá chyba"), true);
+                    throw new Error(d.message || "Nepodařilo se smazat");
                 });
             }
+            editingSha = null;
+            editingName = "";
+            hide(elEditor);
+            show(elPanel);
+            // Remove item from list immediately (optimistic)
+            var items = elDeviceList.querySelectorAll(".device-list-item");
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].textContent === deviceName) {
+                    items[i].remove();
+                    break;
+                }
+            }
+            if (elDeviceList.children.length === 0) {
+                show(elListEmpty);
+                hide(elExportBtn);
+            }
         }).catch(function (err) {
-            showStatus("Chyba: " + err.message, true);
+            showStatus("Chyba při mazání: " + err.message, true);
         }).then(function () {
             elDeleteBtn.disabled = false;
             elDeleteBtn.textContent = "Smazat";
@@ -403,6 +448,85 @@
         }).then(function () {
             elExportBtn.disabled = false;
             elExportBtn.textContent = "Export zálohy (.zip)";
+        });
+    });
+
+    // Import from ZIP
+    elImportBtn.addEventListener("click", function () {
+        elImportFile.click();
+    });
+
+    elImportFile.addEventListener("change", function () {
+        var file = elImportFile.files[0];
+        if (!file) return;
+        elImportFile.value = "";
+
+        if (!confirm("Importovat zálohu? Existující soubory se přepíší.")) return;
+
+        elImportBtn.disabled = true;
+        elImportBtn.textContent = "Importování...";
+
+        var existingFiles = {};
+
+        apiFetch("devices").then(function (r) {
+            if (r.status === 404) return [];
+            return r.json();
+        }).then(function (files) {
+            if (Array.isArray(files)) {
+                files.forEach(function (f) {
+                    if (f.name.endsWith(".txt")) existingFiles[f.name] = f.sha;
+                });
+            }
+            return JSZip.loadAsync(file);
+        }).then(function (zip) {
+            var tasks = [];
+            zip.forEach(function (path, entry) {
+                if (entry.dir) return;
+                var name = path.split("/").pop();
+                if (!name.endsWith(".txt")) return;
+                tasks.push(
+                    entry.async("string").then(function (text) {
+                        return { name: name, text: text };
+                    })
+                );
+            });
+            return Promise.all(tasks);
+        }).then(function (entries) {
+            var chain = Promise.resolve();
+            var imported = 0;
+            entries.forEach(function (entry) {
+                chain = chain.then(function () {
+                    return S2DtRH.encrypt(entry.text).then(function (encrypted) {
+                        var body = {
+                            message: "Import " + entry.name,
+                            content: btoa(encrypted)
+                        };
+                        if (existingFiles[entry.name]) body.sha = existingFiles[entry.name];
+                        return apiFetch("devices/" + entry.name, {
+                            method: "PUT",
+                            body: JSON.stringify(body)
+                        });
+                    }).then(function (r) {
+                        if (!r.ok) {
+                            return r.json().then(function (d) {
+                                throw new Error(entry.name + ": " + (d.message || "Chyba"));
+                            });
+                        }
+                        imported++;
+                        elImportBtn.textContent = "Importováno " + imported + "/" + entries.length + "...";
+                    });
+                });
+            });
+            return chain;
+        }).then(function () {
+            loadDeviceList();
+            alert("Import dokončen.");
+        }).catch(function (err) {
+            alert("Import selhal: " + err.message);
+            loadDeviceList();
+        }).then(function () {
+            elImportBtn.disabled = false;
+            elImportBtn.textContent = "Import zálohy (.zip)";
         });
     });
 
