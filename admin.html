@@ -430,7 +430,9 @@
         }).then(function (devices) {
             var zip = new JSZip();
             devices.forEach(function (d) {
-                zip.file(d.name, d.text);
+                var data = S2DtRH.parseDeviceData(d.text);
+                var formatted = JSON.stringify(data, null, "\t");
+                zip.file(d.name, formatted);
             });
             return zip.generateAsync({ type: "blob" });
         }).then(function (blob) {
