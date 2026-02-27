@@ -437,10 +437,12 @@
             var now = new Date();
             var stamp = now.getFullYear() + "-" +
                 String(now.getMonth() + 1).padStart(2, "0") + "-" +
-                String(now.getDate()).padStart(2, "0");
+                String(now.getDate()).padStart(2, "0") + "-" +
+                String(now.getHours()).padStart(2, "0") + "-" +
+                String(now.getMinutes()).padStart(2, "0");
             var a = document.createElement("a");
             a.href = URL.createObjectURL(blob);
-            a.download = "devices-backup-" + stamp + ".zip";
+            a.download = stamp + "-Devices-backup.zip";
             a.click();
             URL.revokeObjectURL(a.href);
         }).catch(function (err) {
