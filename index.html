@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Device Info</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 </head>
 <body>
 
@@ -13,7 +13,7 @@
 
     <div id="no-device" class="card hidden">
         <p>Scan the QR code on the device to view its info.</p>
-        <button id="scan-btn" class="scan-btn">
+        <label id="scan-btn" class="scan-btn">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 7V5a2 2 0 0 1 2-2h2"/>
                 <path d="M17 3h2a2 2 0 0 1 2 2v2"/>
@@ -22,11 +22,9 @@
                 <rect x="7" y="7" width="10" height="10" rx="1"/>
             </svg>
             Scan QR code
-        </button>
-        <div id="scanner-container" class="hidden">
-            <div id="qr-reader"></div>
-            <button id="scan-stop-btn" class="scan-stop-btn">Cancel</button>
-        </div>
+            <input type="file" id="scan-input" accept="image/*" capture="environment" class="hidden">
+        </label>
+        <p id="scan-error" class="error hidden"></p>
     </div>
 
     <div id="auth-gate" class="card hidden">
@@ -143,48 +141,43 @@
     if (!deviceId) {
         show(elNoDevice);
 
-        var elScanBtn = document.getElementById("scan-btn");
-        var elScannerContainer = document.getElementById("scanner-container");
-        var elScanStopBtn = document.getElementById("scan-stop-btn");
-        var scanner = null;
+        var elScanInput = document.getElementById("scan-input");
+        var elScanError = document.getElementById("scan-error");
 
-        elScanBtn.addEventListener("click", function () {
-            hide(elScanBtn);
-            show(elScannerContainer);
-            scanner = new Html5Qrcode("qr-reader");
-            scanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                function (decodedText) {
-                    scanner.stop().then(function () { scanner = null; });
+        elScanInput.addEventListener("change", function () {
+            var file = elScanInput.files[0];
+            if (!file) return;
+            hide(elScanError);
+
+            var img = new Image();
+            img.onload = function () {
+                var canvas = document.createElement("canvas");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+                var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                var code = jsQR(imageData.data, canvas.width, canvas.height);
+
+                if (code && code.data) {
                     try {
-                        var url = new URL(decodedText);
-                        var id = url.searchParams.get("id");
-                        if (id) {
-                            window.location.href = url.href;
-                            return;
-                        }
+                        var url = new URL(code.data);
+                        window.location.href = url.href;
+                        return;
                     } catch (e) {}
-                    window.location.href = decodedText;
+                    window.location.href = code.data;
+                } else {
+                    elScanError.textContent = "QR code not found in the photo. Try again.";
+                    show(elScanError);
                 }
-            ).catch(function () {
-                hide(elScannerContainer);
-                show(elScanBtn);
-                alert("Camera access denied or not available.");
-            });
-        });
-
-        elScanStopBtn.addEventListener("click", function () {
-            if (scanner) {
-                scanner.stop().then(function () {
-                    scanner = null;
-                    hide(elScannerContainer);
-                    show(elScanBtn);
-                });
-            } else {
-                hide(elScannerContainer);
-                show(elScanBtn);
-            }
+                elScanInput.value = "";
+            };
+            img.onerror = function () {
+                elScanError.textContent = "Could not load the photo.";
+                show(elScanError);
+                elScanInput.value = "";
+            };
+            img.src = URL.createObjectURL(file);
         });
 
         return;
