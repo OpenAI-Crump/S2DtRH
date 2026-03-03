@@ -139,6 +139,15 @@ p {
     background: #1d4ed8;
 }
 
+/* Hero image */
+
+.hero-img {
+    width: calc(100% + 3rem);
+    margin: -1.5rem -1.5rem 1rem -1.5rem;
+    border-radius: 12px 12px 0 0;
+    display: block;
+}
+
 /* QR Scanner */
 
 .scan-btn {
