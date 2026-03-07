@@ -203,7 +203,7 @@ p {
 .admin-form textarea,
 .admin-form select {
     width: 100%;
-    font-size: 0.9rem;
+    font-size: 1rem;
     padding: 0.6rem 0.75rem;
     border: 2px solid #d0d5dd;
     border-radius: 8px;
@@ -213,6 +213,14 @@ p {
     background: #fff;
     -webkit-appearance: none;
     appearance: none;
+    height: 2.75rem;
+    line-height: 1.2;
+}
+
+.admin-form textarea {
+    height: auto;
+    resize: vertical;
+    line-height: 1.5;
 }
 
 .admin-form select {
@@ -226,11 +234,6 @@ p {
 .admin-form textarea:focus,
 .admin-form select:focus {
     border-color: #2563eb;
-}
-
-.admin-form textarea {
-    resize: vertical;
-    line-height: 1.5;
 }
 
 .admin-form button {
