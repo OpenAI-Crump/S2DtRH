@@ -456,9 +456,21 @@ p {
 
 .admin-nav {
     display: flex;
+    align-items: center;
     gap: 0;
     padding: 0.25rem;
     margin-bottom: 0.75rem;
+}
+
+.admin-nav .lang-switcher {
+    padding: 0;
+    margin-left: auto;
+    gap: 0.15rem;
+}
+
+.admin-nav .lang-btn {
+    width: 26px;
+    height: 20px;
 }
 
 .nav-tab {

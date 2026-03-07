@@ -30,6 +30,7 @@
     <div id="admin-nav" class="card admin-nav hidden">
         <button id="nav-devices" class="nav-tab active"></button>
         <button id="nav-customers" class="nav-tab"></button>
+        <div id="lang-sw-nav"></div>
     </div>
 
     <!-- Device list -->
@@ -290,8 +291,9 @@
         refreshCustomerSelect();
     }
 
-    // Insert lang switcher in login card
+    // Insert lang switchers
     document.getElementById("lang-sw-login").appendChild(S2DtRH_i18n.createLangSwitcher());
+    document.getElementById("lang-sw-nav").appendChild(S2DtRH_i18n.createLangSwitcher());
 
     document.addEventListener("langchange", function () {
         applyTexts();
@@ -723,8 +725,10 @@
         var visibleCount = 0;
         for (var i = 0; i < items.length; i++) {
             var name = items[i].getAttribute("data-device-name");
+            var loaded = deviceCustomerMap.hasOwnProperty(name);
             var cust = deviceCustomerMap[name] || "";
-            if (!filter || cust === filter) {
+            // Show if: no filter, matches filter, or data not loaded yet
+            if (!filter || cust === filter || !loaded) {
                 items[i].style.display = "";
                 visibleCount++;
             } else {
@@ -796,7 +800,7 @@
                     if (!plaintext) return;
                     var device = S2DtRH.parseDeviceData(plaintext);
                     deviceCustomerMap[name] = device.customer || "";
-                    if (elCustomerFilter.value) applyCustomerFilter();
+                    applyCustomerFilter();
                 }).catch(function () {});
             });
         }).catch(function (err) {
