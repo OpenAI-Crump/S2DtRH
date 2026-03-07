@@ -468,10 +468,26 @@
 
     // ---- ARES (via CORS proxy) ----
     var ARES_BASE = "https://ares.gov.cz/ekonomicke-subjekty-v-registru-osob/rest/ekonomicke-subjekty";
-    var PROXY = "https://api.allorigins.win/raw?url=";
+    var PROXY_URL = "https://corsproxy.io/?";
 
-    function aresFetch(url) {
-        return fetch(PROXY + encodeURIComponent(url)).then(function (r) {
+    function aresGet(url) {
+        return fetch(PROXY_URL + encodeURIComponent(url), {
+            headers: { "Accept": "application/json" }
+        }).then(function (r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.json();
+        });
+    }
+
+    function aresPost(url, body) {
+        return fetch(PROXY_URL + encodeURIComponent(url), {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify(body)
+        }).then(function (r) {
             if (!r.ok) throw new Error("HTTP " + r.status);
             return r.json();
         });
@@ -485,7 +501,7 @@
         elAresCinBtn.disabled = true;
         elAresCinBtn.textContent = "...";
 
-        aresFetch(ARES_BASE + "/" + cin).then(function (data) {
+        aresGet(ARES_BASE + "/" + cin).then(function (data) {
             elCustCin.value = data.ico || cin;
             elCustVat.value = data.dic || "";
             elCustName.value = data.obchodniJmeno || "";
@@ -506,8 +522,7 @@
         elAresNameBtn.disabled = true;
         elAresNameBtn.textContent = "...";
 
-        var url = ARES_BASE + "/vyhledat?obchodniJmeno=" + encodeURIComponent(query) + "&start=0&pocet=10";
-        aresFetch(url).then(function (data) {
+        aresPost(ARES_BASE + "/vyhledat", { obchodniJmeno: query, start: 0, pocet: 10 }).then(function (data) {
             var items = (data.ekonomickeSubjekty || []);
             if (items.length === 0) {
                 showCustStatus("ARES: žádné výsledky.", true);
