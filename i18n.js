@@ -306,7 +306,7 @@
 
     // Flag SVGs (inline, no external files)
     var flags = {
-        en: '<svg viewBox="0 0 60 30" width="20" height="10"><clipPath id="ec"><rect width="60" height="30"/></clipPath><g clip-path="url(#ec)"><rect width="60" height="30" fill="#00247d"/><path d="M0 0L60 30M60 0L0 30" stroke="#fff" stroke-width="6"/><path d="M0 0L60 30M60 0L0 30" stroke="#cf142b" stroke-width="4" clip-path="url(#ec)"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#cf142b" stroke-width="6"/><rect x="30" width="30" height="30" fill="#b22234" opacity="0.5"/><g transform="translate(38,3)"><g fill="#fff"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="10" cy="2" r="1.2"/><circle cx="2" cy="5.5" r="1.2"/><circle cx="6" cy="5.5" r="1.2"/><circle cx="10" cy="5.5" r="1.2"/></g></g></g></svg>',
+        en: '<svg viewBox="0 0 60 30" width="20" height="10"><clipPath id="ec"><rect width="60" height="30"/></clipPath><g clip-path="url(#ec)"><rect width="60" height="30" fill="#00247d"/><path d="M0 0L60 30M60 0L0 30" stroke="#fff" stroke-width="6"/><path d="M0 0L60 30M60 0L0 30" stroke="#cf142b" stroke-width="4"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#cf142b" stroke-width="6"/></g></svg>',
         cs: '<svg viewBox="0 0 6 4" width="20" height="13"><rect width="6" height="2" fill="#fff"/><rect y="2" width="6" height="2" fill="#d7141a"/><polygon points="0,0 3,2 0,4" fill="#11457e"/></svg>',
         de: '<svg viewBox="0 0 5 3" width="20" height="12"><rect width="5" height="1" fill="#000"/><rect y="1" width="5" height="1" fill="#d00"/><rect y="2" width="5" height="1" fill="#fc0"/></svg>'
     };
