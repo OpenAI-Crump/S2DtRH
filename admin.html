@@ -486,31 +486,43 @@
         });
     });
 
-    // ---- ARES (via CORS proxy) ----
-    var ARES_BASE = "https://ares.gov.cz/ekonomicke-subjekty-v-registru-osob/rest/ekonomicke-subjekty";
-    var PROXY_URL = "https://corsproxy.io/?";
+    // ---- ARES (try direct, then CORS proxies) ----
+    var ARES_BASE = "https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty";
 
-    function aresGet(url) {
-        return fetch(PROXY_URL + encodeURIComponent(url), {
-            headers: { "Accept": "application/json" }
-        }).then(function (r) {
-            if (!r.ok) throw new Error("HTTP " + r.status);
-            return r.json();
-        });
-    }
+    function aresFetch(url, options) {
+        options = options || {};
+        var method = options.method || "GET";
+        var bodyStr = options.body ? JSON.stringify(options.body) : null;
 
-    function aresPost(url, body) {
-        return fetch(PROXY_URL + encodeURIComponent(url), {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify(body)
-        }).then(function (r) {
-            if (!r.ok) throw new Error("HTTP " + r.status);
-            return r.json();
-        });
+        // Build list of URLs to try: direct first, then proxies
+        var urls = [
+            url,
+            "https://corsproxy.io/?" + encodeURIComponent(url),
+            "https://api.allorigins.win/raw?url=" + encodeURIComponent(url)
+        ];
+        var idx = 0;
+
+        function tryNext() {
+            if (idx >= urls.length) return Promise.reject(new Error("ARES nedostupný (CORS)"));
+            var tryUrl = urls[idx];
+            idx++;
+            var fetchOpts = {
+                method: method,
+                headers: { "Accept": "application/json" }
+            };
+            if (bodyStr) {
+                fetchOpts.headers["Content-Type"] = "application/json";
+                fetchOpts.body = bodyStr;
+            }
+            return fetch(tryUrl, fetchOpts).then(function (r) {
+                if (!r.ok) throw new Error("HTTP " + r.status);
+                return r.json();
+            }).catch(function (err) {
+                console.log("ARES proxy #" + (idx - 1) + " failed: " + err.message);
+                return tryNext();
+            });
+        }
+        return tryNext();
     }
 
     function aresLookupByCin(cin) {
@@ -521,13 +533,13 @@
         elAresCinBtn.disabled = true;
         elAresCinBtn.textContent = "...";
 
-        aresGet(ARES_BASE + "/" + cin).then(function (data) {
+        aresFetch(ARES_BASE + "/" + cin).then(function (data) {
             elCustCin.value = data.ico || cin;
             elCustVat.value = data.dic || "";
             elCustName.value = data.obchodniJmeno || "";
             showCustStatus("Načteno z ARES.", false);
         }).catch(function (err) {
-            showCustStatus("ARES: Subjekt nenalezen.", true);
+            showCustStatus("ARES: Subjekt nenalezen (" + err.message + ").", true);
         }).then(function () {
             elAresCinBtn.disabled = false;
             elAresCinBtn.textContent = "ARES";
@@ -542,7 +554,7 @@
         elAresNameBtn.disabled = true;
         elAresNameBtn.textContent = "...";
 
-        aresPost(ARES_BASE + "/vyhledat", { obchodniJmeno: query, start: 0, pocet: 10 }).then(function (data) {
+        aresFetch(ARES_BASE + "/vyhledat", { method: "POST", body: { obchodniJmeno: query, start: 0, pocet: 10 } }).then(function (data) {
             var items = (data.ekonomickeSubjekty || []);
             if (items.length === 0) {
                 showCustStatus("ARES: žádné výsledky.", true);
