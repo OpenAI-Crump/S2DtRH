@@ -65,6 +65,8 @@
             <input type="url" id="inventory-link-input" placeholder="https://sharepoint.com/..." autocomplete="off">
             <label for="service-tag-input">Dell Service Tag (volitelné)</label>
             <input type="text" id="service-tag-input" placeholder="např. 8TFD1D4" autocomplete="off">
+            <label for="warranty-end-input">Konec záruky (volitelné)</label>
+            <input type="date" id="warranty-end-input">
         </form>
         <p class="hint">Text mezi _podtržítky_ se zobrazí <strong>tučně</strong>.</p>
         <div id="preview-box">
@@ -123,6 +125,7 @@
     var elDeviceContent = document.getElementById("device-content");
     var elInventoryLink = document.getElementById("inventory-link-input");
     var elServiceTag = document.getElementById("service-tag-input");
+    var elWarrantyEnd = document.getElementById("warranty-end-input");
     var elPreviewText = document.getElementById("preview-text");
     var elSaveBtn = document.getElementById("save-btn");
     var elDeleteBtn = document.getElementById("delete-btn");
@@ -217,6 +220,7 @@
         hide(elEditorStatus);
         elInventoryLink.value = "";
         elServiceTag.value = "";
+        elWarrantyEnd.value = "";
 
         if (dev) {
             elEditorTitle.textContent = "Upravit: " + dev.name;
@@ -242,6 +246,7 @@
                 elDeviceContent.value = device.content;
                 elInventoryLink.value = device.inventoryLink;
                 elServiceTag.value = device.serviceTag;
+                elWarrantyEnd.value = device.warrantyEnd;
                 elDeviceContent.disabled = false;
                 updatePreview();
             }).catch(function (err) {
@@ -291,6 +296,7 @@
         var content = elDeviceContent.value;
         var inventoryLink = elInventoryLink.value.trim();
         var serviceTag = elServiceTag.value.trim();
+        var warrantyEnd = elWarrantyEnd.value;
 
         if (!id) { showStatus("Zadejte ID zařízení.", true); return; }
         if (!/^[a-zA-Z0-9_\-]+$/.test(id)) {
@@ -302,7 +308,7 @@
         elSaveBtn.disabled = true;
         elSaveBtn.textContent = "Ukládání...";
 
-        var deviceData = S2DtRH.serializeDeviceData(content, inventoryLink, serviceTag);
+        var deviceData = S2DtRH.serializeDeviceData(content, inventoryLink, serviceTag, warrantyEnd);
 
         S2DtRH.encrypt(deviceData).then(function (encrypted) {
             var body = {
