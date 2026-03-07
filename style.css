@@ -449,3 +449,115 @@ p {
     color: #2563eb;
     border-color: #2563eb;
 }
+
+/* Admin nav tabs */
+
+.admin-nav {
+    display: flex;
+    gap: 0;
+    padding: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.nav-tab {
+    flex: 1;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    color: #888;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.nav-tab:hover {
+    color: #333;
+}
+
+.nav-tab.active {
+    background: #2563eb;
+    color: #fff;
+}
+
+/* Customer table */
+
+.customer-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.customer-table th {
+    text-align: left;
+    font-weight: 600;
+    color: #555;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.4rem 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.customer-table td {
+    padding: 0.5rem 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    color: #333;
+    cursor: pointer;
+    transition: color 0.15s;
+}
+
+.customer-table tbody tr:hover td {
+    color: #2563eb;
+}
+
+/* Input with inline button */
+
+.input-with-btn {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.input-with-btn input {
+    flex: 1;
+    min-width: 0;
+}
+
+.input-with-btn .btn-small {
+    flex-shrink: 0;
+    height: 2.75rem;
+    padding: 0 0.75rem;
+    white-space: nowrap;
+}
+
+/* ARES results */
+
+.ares-results {
+    margin-top: 0.5rem;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.ares-item {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    color: #333;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.1s;
+}
+
+.ares-item:last-child {
+    border-bottom: none;
+}
+
+.ares-item:hover {
+    background: #f0f5ff;
+}
+
+.ares-item small {
+    color: #888;
+}
