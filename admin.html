@@ -431,7 +431,7 @@
         if (!cin || !validateCIN(cin)) {
             showCustStatus("IČO musí být přesně 8 číslic.", true); return;
         }
-        if (!vat || !validateVAT(vat)) {
+        if (vat && !validateVAT(vat)) {
             showCustStatus("DIČ musí být ve formátu CZ + 8–10 číslic (např. CZ12345678).", true); return;
         }
         if (!name) {
