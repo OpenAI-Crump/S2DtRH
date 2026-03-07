@@ -25,6 +25,12 @@
         <p id="login-error" class="error hidden">Neplatné heslo nebo PAT.</p>
     </div>
 
+    <!-- Navigation tabs -->
+    <div id="admin-nav" class="card admin-nav hidden">
+        <button id="nav-devices" class="nav-tab active">Zařízení</button>
+        <button id="nav-customers" class="nav-tab">Zákazníci</button>
+    </div>
+
     <!-- Device list -->
     <div id="admin-panel" class="card hidden">
         <div class="panel-header">
@@ -99,6 +105,48 @@
         <p id="editor-status" class="hidden"></p>
     </div>
 
+    <!-- Customer list -->
+    <div id="customer-panel" class="card hidden">
+        <div class="panel-header">
+            <h1>Zákazníci</h1>
+            <button id="new-customer-btn" class="btn-small">+ Nový</button>
+        </div>
+        <table id="customer-table" class="customer-table hidden">
+            <thead>
+                <tr><th>IČO</th><th>DIČ</th><th>Název</th></tr>
+            </thead>
+            <tbody id="customer-tbody"></tbody>
+        </table>
+        <p id="cust-list-empty" class="hint hidden">Žádní zákazníci.</p>
+        <p id="cust-list-error" class="error hidden"></p>
+    </div>
+
+    <!-- Customer editor -->
+    <div id="customer-editor" class="card hidden">
+        <h1 id="cust-editor-title">Nový zákazník</h1>
+        <form id="cust-editor-form" class="admin-form">
+            <label for="cust-cin-input">IČO</label>
+            <div class="input-with-btn">
+                <input type="text" id="cust-cin-input" placeholder="12345678" autocomplete="off" maxlength="8" inputmode="numeric">
+                <button type="button" id="ares-cin-btn" class="btn-small" title="Hledat v ARES">ARES</button>
+            </div>
+            <label for="cust-vat-input">DIČ</label>
+            <input type="text" id="cust-vat-input" placeholder="CZ12345678" autocomplete="off" maxlength="12">
+            <label for="cust-name-input">Název</label>
+            <div class="input-with-btn">
+                <input type="text" id="cust-name-input" placeholder="Název společnosti" autocomplete="off">
+                <button type="button" id="ares-name-btn" class="btn-small" title="Hledat v ARES">ARES</button>
+            </div>
+        </form>
+        <div id="ares-results" class="ares-results hidden"></div>
+        <div class="editor-actions">
+            <button id="cust-save-btn">Uložit</button>
+            <button id="cust-delete-btn" class="btn-danger hidden">Smazat</button>
+            <button id="cust-back-btn" class="btn-secondary">Zpět</button>
+        </div>
+        <p id="cust-editor-status" class="hidden"></p>
+    </div>
+
 </div>
 
 <script src="crypto.js"></script>
@@ -109,12 +157,18 @@
     var githubPat = "";
     var editingSha = null;
     var editingName = "";
+    var customers = [];
+    var customersSha = null;
 
     var elLogin = document.getElementById("admin-login");
     var elLoginForm = document.getElementById("login-form");
     var elAdminPass = document.getElementById("admin-pass");
     var elGithubPat = document.getElementById("github-pat");
     var elLoginError = document.getElementById("login-error");
+
+    var elAdminNav = document.getElementById("admin-nav");
+    var elNavDevices = document.getElementById("nav-devices");
+    var elNavCustomers = document.getElementById("nav-customers");
 
     var elPanel = document.getElementById("admin-panel");
     var elDeviceList = document.getElementById("device-list");
@@ -134,7 +188,6 @@
     var elWarrantyEnd = document.getElementById("warranty-end-input");
     var elDeploymentDate = document.getElementById("deployment-date-input");
     var elCustomerSelect = document.getElementById("customer-select");
-    var customers = [];
     var elPreviewText = document.getElementById("preview-text");
     var elSaveBtn = document.getElementById("save-btn");
     var elDeleteBtn = document.getElementById("delete-btn");
@@ -144,6 +197,26 @@
     var elDeviceLink = document.getElementById("device-link");
     var elCopyLinkBtn = document.getElementById("copy-link-btn");
 
+    var elCustPanel = document.getElementById("customer-panel");
+    var elCustTable = document.getElementById("customer-table");
+    var elCustTbody = document.getElementById("customer-tbody");
+    var elCustListEmpty = document.getElementById("cust-list-empty");
+    var elCustListError = document.getElementById("cust-list-error");
+    var elNewCustBtn = document.getElementById("new-customer-btn");
+    var elCustEditor = document.getElementById("customer-editor");
+    var elCustEditorTitle = document.getElementById("cust-editor-title");
+    var elCustCin = document.getElementById("cust-cin-input");
+    var elCustVat = document.getElementById("cust-vat-input");
+    var elCustName = document.getElementById("cust-name-input");
+    var elAresCinBtn = document.getElementById("ares-cin-btn");
+    var elAresNameBtn = document.getElementById("ares-name-btn");
+    var elAresResults = document.getElementById("ares-results");
+    var elCustSaveBtn = document.getElementById("cust-save-btn");
+    var elCustDeleteBtn = document.getElementById("cust-delete-btn");
+    var elCustBackBtn = document.getElementById("cust-back-btn");
+    var elCustEditorStatus = document.getElementById("cust-editor-status");
+    var editingCustomerIndex = -1;
+
     function show(el) { el.classList.remove("hidden"); }
     function hide(el) { el.classList.add("hidden"); }
 
@@ -152,6 +225,13 @@
         elEditorStatus.className = isError ? "error" : "success";
         show(elEditorStatus);
         if (!isError) setTimeout(function () { hide(elEditorStatus); }, 3000);
+    }
+
+    function showCustStatus(msg, isError) {
+        elCustEditorStatus.textContent = msg;
+        elCustEditorStatus.className = isError ? "error" : "success";
+        show(elCustEditorStatus);
+        if (!isError) setTimeout(function () { hide(elCustEditorStatus); }, 3000);
     }
 
     function apiUrl(path) {
@@ -167,33 +247,304 @@
         return fetch(apiUrl(path), options);
     }
 
+    // ---- Navigation ----
+    function showDevicesView() {
+        elNavDevices.classList.add("active");
+        elNavCustomers.classList.remove("active");
+        show(elPanel);
+        hide(elCustPanel);
+        hide(elEditor);
+        hide(elCustEditor);
+    }
+
+    function showCustomersView() {
+        elNavCustomers.classList.add("active");
+        elNavDevices.classList.remove("active");
+        hide(elPanel);
+        show(elCustPanel);
+        hide(elEditor);
+        hide(elCustEditor);
+        renderCustomerTable();
+    }
+
+    elNavDevices.addEventListener("click", showDevicesView);
+    elNavCustomers.addEventListener("click", showCustomersView);
+
+    // ---- Customer data ----
     function loadCustomers() {
-        apiFetch("customers.txt").then(function (r) {
-            if (!r.ok) return;
+        return apiFetch("customers.txt").then(function (r) {
+            if (!r.ok) { customersSha = null; return; }
             return r.json();
         }).then(function (data) {
             if (!data || !data.content) return;
+            customersSha = data.sha;
             var binary = atob(data.content.replace(/\s/g, ""));
             var bytes = new Uint8Array(binary.length);
             for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
             var text = new TextDecoder("utf-8").decode(bytes);
             var lines = text.split("\n").filter(function (l) { return l.trim(); });
             customers = [];
-            // Keep only the default option
-            elCustomerSelect.innerHTML = '<option value="">— nevybráno —</option>';
             lines.forEach(function (line) {
                 var parts = line.split(",");
                 if (parts.length >= 3) {
-                    var name = parts.slice(2).join(",").trim();
-                    customers.push({ cin: parts[0].trim(), vat: parts[1].trim(), name: name });
-                    var opt = document.createElement("option");
-                    opt.value = name;
-                    opt.textContent = name;
-                    elCustomerSelect.appendChild(opt);
+                    customers.push({
+                        cin: parts[0].trim(),
+                        vat: parts[1].trim(),
+                        name: parts.slice(2).join(",").trim()
+                    });
                 }
             });
+            refreshCustomerSelect();
         }).catch(function () {});
     }
+
+    function refreshCustomerSelect() {
+        elCustomerSelect.innerHTML = '<option value="">— nevybráno —</option>';
+        customers.forEach(function (c) {
+            var opt = document.createElement("option");
+            opt.value = c.name;
+            opt.textContent = c.name;
+            elCustomerSelect.appendChild(opt);
+        });
+    }
+
+    function customersToCSV() {
+        return customers.map(function (c) {
+            return c.cin + "," + c.vat + "," + c.name;
+        }).join("\n") + "\n";
+    }
+
+    function saveCustomersFile() {
+        var csv = customersToCSV();
+        var body = {
+            message: "Update customers.txt",
+            content: btoa(unescape(encodeURIComponent(csv)))
+        };
+        if (customersSha) body.sha = customersSha;
+        return apiFetch("customers.txt", {
+            method: "PUT",
+            body: JSON.stringify(body)
+        }).then(function (r) {
+            return r.json();
+        }).then(function (data) {
+            if (data.content) {
+                customersSha = data.content.sha;
+                refreshCustomerSelect();
+            }
+            return data;
+        });
+    }
+
+    function renderCustomerTable() {
+        elCustTbody.innerHTML = "";
+        hide(elCustListError);
+        if (customers.length === 0) {
+            hide(elCustTable);
+            show(elCustListEmpty);
+            return;
+        }
+        hide(elCustListEmpty);
+        show(elCustTable);
+        customers.forEach(function (c, idx) {
+            var tr = document.createElement("tr");
+            var tdCin = document.createElement("td");
+            tdCin.textContent = c.cin;
+            var tdVat = document.createElement("td");
+            tdVat.textContent = c.vat;
+            var tdName = document.createElement("td");
+            tdName.textContent = c.name;
+            tr.appendChild(tdCin);
+            tr.appendChild(tdVat);
+            tr.appendChild(tdName);
+            tr.addEventListener("click", function () { openCustomerEditor(idx); });
+            elCustTbody.appendChild(tr);
+        });
+    }
+
+    // ---- Customer editor ----
+    function openCustomerEditor(idx) {
+        hide(elCustPanel);
+        show(elCustEditor);
+        hide(elCustEditorStatus);
+        hide(elAresResults);
+        editingCustomerIndex = idx;
+
+        if (idx >= 0) {
+            var c = customers[idx];
+            elCustEditorTitle.textContent = "Upravit: " + c.name;
+            elCustCin.value = c.cin;
+            elCustVat.value = c.vat;
+            elCustName.value = c.name;
+            show(elCustDeleteBtn);
+        } else {
+            elCustEditorTitle.textContent = "Nový zákazník";
+            elCustCin.value = "";
+            elCustVat.value = "";
+            elCustName.value = "";
+            hide(elCustDeleteBtn);
+        }
+    }
+
+    elNewCustBtn.addEventListener("click", function () { openCustomerEditor(-1); });
+
+    elCustBackBtn.addEventListener("click", function () {
+        hide(elCustEditor);
+        show(elCustPanel);
+        renderCustomerTable();
+    });
+
+    // ---- Validation ----
+    function validateCIN(v) {
+        return /^\d{8}$/.test(v);
+    }
+
+    function validateVAT(v) {
+        return /^CZ\d{8,10}$/.test(v);
+    }
+
+    // ---- Customer save ----
+    elCustSaveBtn.addEventListener("click", function () {
+        var cin = elCustCin.value.trim();
+        var vat = elCustVat.value.trim().toUpperCase();
+        var name = elCustName.value.trim();
+
+        if (!cin || !validateCIN(cin)) {
+            showCustStatus("IČO musí být přesně 8 číslic.", true); return;
+        }
+        if (!vat || !validateVAT(vat)) {
+            showCustStatus("DIČ musí být ve formátu CZ + 8–10 číslic (např. CZ12345678).", true); return;
+        }
+        if (!name) {
+            showCustStatus("Zadejte název zákazníka.", true); return;
+        }
+
+        var entry = { cin: cin, vat: vat, name: name };
+        if (editingCustomerIndex >= 0) {
+            customers[editingCustomerIndex] = entry;
+        } else {
+            customers.push(entry);
+        }
+
+        elCustSaveBtn.disabled = true;
+        elCustSaveBtn.textContent = "Ukládání...";
+
+        saveCustomersFile().then(function (data) {
+            if (data.content) {
+                editingCustomerIndex = customers.indexOf(entry);
+                show(elCustDeleteBtn);
+                showCustStatus("Uloženo.", false);
+            } else {
+                showCustStatus("Chyba: " + (data.message || "Neznámá chyba"), true);
+            }
+        }).catch(function (err) {
+            showCustStatus("Chyba: " + err.message, true);
+        }).then(function () {
+            elCustSaveBtn.disabled = false;
+            elCustSaveBtn.textContent = "Uložit";
+        });
+    });
+
+    // ---- Customer delete ----
+    elCustDeleteBtn.addEventListener("click", function () {
+        if (editingCustomerIndex < 0) return;
+        var name = customers[editingCustomerIndex].name;
+        if (!confirm('Opravdu smazat zákazníka "' + name + '"?')) return;
+
+        customers.splice(editingCustomerIndex, 1);
+        elCustDeleteBtn.disabled = true;
+        elCustDeleteBtn.textContent = "Mazání...";
+
+        saveCustomersFile().then(function () {
+            hide(elCustEditor);
+            show(elCustPanel);
+            renderCustomerTable();
+        }).catch(function (err) {
+            showCustStatus("Chyba: " + err.message, true);
+        }).then(function () {
+            elCustDeleteBtn.disabled = false;
+            elCustDeleteBtn.textContent = "Smazat";
+        });
+    });
+
+    // ---- ARES ----
+    var ARES_BASE = "https://ares.gov.cz/ekonomicke-subjekty-v-registru-osob/rest/ekonomicke-subjekty";
+
+    function aresLookupByCin(cin) {
+        hide(elAresResults);
+        if (!cin || !/^\d{1,8}$/.test(cin)) {
+            showCustStatus("Zadejte platné IČO (až 8 číslic).", true); return;
+        }
+        elAresCinBtn.disabled = true;
+        elAresCinBtn.textContent = "...";
+
+        fetch(ARES_BASE + "/" + cin).then(function (r) {
+            if (!r.ok) throw new Error("Subjekt nenalezen (HTTP " + r.status + ")");
+            return r.json();
+        }).then(function (data) {
+            elCustCin.value = data.ico || cin;
+            elCustVat.value = data.dic || "";
+            elCustName.value = data.obchodniJmeno || "";
+            showCustStatus("Načteno z ARES.", false);
+        }).catch(function (err) {
+            showCustStatus("ARES: " + err.message, true);
+        }).then(function () {
+            elAresCinBtn.disabled = false;
+            elAresCinBtn.textContent = "ARES";
+        });
+    }
+
+    function aresSearchByName(query) {
+        hide(elAresResults);
+        if (!query || query.length < 2) {
+            showCustStatus("Zadejte alespoň 2 znaky pro vyhledávání.", true); return;
+        }
+        elAresNameBtn.disabled = true;
+        elAresNameBtn.textContent = "...";
+
+        fetch(ARES_BASE + "/vyhledat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ obchodniJmeno: query, start: 0, pocet: 10 })
+        }).then(function (r) {
+            if (!r.ok) throw new Error("Vyhledávání selhalo (HTTP " + r.status + ")");
+            return r.json();
+        }).then(function (data) {
+            var items = (data.ekonomickeSubjekty || []);
+            if (items.length === 0) {
+                showCustStatus("ARES: žádné výsledky.", true);
+                return;
+            }
+            elAresResults.innerHTML = "";
+            items.forEach(function (item) {
+                var div = document.createElement("div");
+                div.className = "ares-item";
+                div.innerHTML = "<strong></strong> <small></small>";
+                div.querySelector("strong").textContent = item.obchodniJmeno || "—";
+                div.querySelector("small").textContent = "IČO: " + (item.ico || "—") + (item.dic ? " | DIČ: " + item.dic : "");
+                div.addEventListener("click", function () {
+                    elCustCin.value = item.ico || "";
+                    elCustVat.value = item.dic || "";
+                    elCustName.value = item.obchodniJmeno || "";
+                    hide(elAresResults);
+                });
+                elAresResults.appendChild(div);
+            });
+            show(elAresResults);
+        }).catch(function (err) {
+            showCustStatus("ARES: " + err.message, true);
+        }).then(function () {
+            elAresNameBtn.disabled = false;
+            elAresNameBtn.textContent = "ARES";
+        });
+    }
+
+    elAresCinBtn.addEventListener("click", function () {
+        aresLookupByCin(elCustCin.value.trim());
+    });
+
+    elAresNameBtn.addEventListener("click", function () {
+        aresSearchByName(elCustName.value.trim());
+    });
 
     function loadDeviceList() {
         hide(elListEmpty);
@@ -608,6 +959,7 @@
         S2DtRH.sha256(pass).then(function (hash) {
             if (hash === S2DtRH.ADMIN_HASH) {
                 hide(elLogin);
+                show(elAdminNav);
                 show(elPanel);
                 loadCustomers();
                 loadDeviceList();
