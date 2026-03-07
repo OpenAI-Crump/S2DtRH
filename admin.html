@@ -37,6 +37,11 @@
             <h1>Zařízení</h1>
             <button id="new-device-btn" class="btn-small">+ Nové</button>
         </div>
+        <div id="customer-filter-row" class="hidden" style="margin-bottom:0.5rem;">
+            <select id="customer-filter" style="width:100%;font-size:0.85rem;padding:0.4rem 0.6rem;border:1px solid #d0d5dd;border-radius:6px;background:#fff;appearance:none;-webkit-appearance:none;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23555' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 0.6rem center;padding-right:1.8rem;">
+                <option value="">All / Všichni</option>
+            </select>
+        </div>
         <div id="device-list"></div>
         <p id="list-empty" class="hint hidden">Žádná zařízení. Přidejte první.</p>
         <p id="list-error" class="error hidden"></p>
@@ -178,6 +183,9 @@
     var elExportBtn = document.getElementById("export-btn");
     var elImportBtn = document.getElementById("import-btn");
     var elImportFile = document.getElementById("import-file");
+    var elCustomerFilter = document.getElementById("customer-filter");
+    var elCustomerFilterRow = document.getElementById("customer-filter-row");
+    var deviceCustomerMap = {};
 
     var elEditor = document.getElementById("editor");
     var elEditorTitle = document.getElementById("editor-title");
@@ -295,17 +303,29 @@
                 }
             });
             refreshCustomerSelect();
+            // Show filter if devices are already loaded
+            if (elDeviceList.children.length > 0 && customers.length > 0) {
+                show(elCustomerFilterRow);
+            }
         }).catch(function () {});
     }
 
     function refreshCustomerSelect() {
         elCustomerSelect.innerHTML = '<option value="">— nevybráno —</option>';
+        var currentFilter = elCustomerFilter.value;
+        elCustomerFilter.innerHTML = '<option value="">All / Všichni</option>';
         customers.forEach(function (c) {
             var opt = document.createElement("option");
             opt.value = c.name;
             opt.textContent = c.name;
             elCustomerSelect.appendChild(opt);
+
+            var fopt = document.createElement("option");
+            fopt.value = c.name;
+            fopt.textContent = c.name;
+            elCustomerFilter.appendChild(fopt);
         });
+        elCustomerFilter.value = currentFilter;
     }
 
     function customersToCSV() {
@@ -468,10 +488,26 @@
 
     // ---- ARES (via CORS proxy) ----
     var ARES_BASE = "https://ares.gov.cz/ekonomicke-subjekty-v-registru-osob/rest/ekonomicke-subjekty";
-    var PROXY = "https://api.allorigins.win/raw?url=";
+    var PROXY_URL = "https://corsproxy.io/?";
 
-    function aresFetch(url) {
-        return fetch(PROXY + encodeURIComponent(url)).then(function (r) {
+    function aresGet(url) {
+        return fetch(PROXY_URL + encodeURIComponent(url), {
+            headers: { "Accept": "application/json" }
+        }).then(function (r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.json();
+        });
+    }
+
+    function aresPost(url, body) {
+        return fetch(PROXY_URL + encodeURIComponent(url), {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify(body)
+        }).then(function (r) {
             if (!r.ok) throw new Error("HTTP " + r.status);
             return r.json();
         });
@@ -485,7 +521,7 @@
         elAresCinBtn.disabled = true;
         elAresCinBtn.textContent = "...";
 
-        aresFetch(ARES_BASE + "/" + cin).then(function (data) {
+        aresGet(ARES_BASE + "/" + cin).then(function (data) {
             elCustCin.value = data.ico || cin;
             elCustVat.value = data.dic || "";
             elCustName.value = data.obchodniJmeno || "";
@@ -506,8 +542,7 @@
         elAresNameBtn.disabled = true;
         elAresNameBtn.textContent = "...";
 
-        var url = ARES_BASE + "/vyhledat?obchodniJmeno=" + encodeURIComponent(query) + "&start=0&pocet=10";
-        aresFetch(url).then(function (data) {
+        aresPost(ARES_BASE + "/vyhledat", { obchodniJmeno: query, start: 0, pocet: 10 }).then(function (data) {
             var items = (data.ekonomickeSubjekty || []);
             if (items.length === 0) {
                 showCustStatus("ARES: žádné výsledky.", true);
@@ -545,11 +580,36 @@
         aresSearchByName(elCustName.value.trim());
     });
 
+    function applyCustomerFilter() {
+        var filter = elCustomerFilter.value;
+        var items = elDeviceList.querySelectorAll(".device-list-item");
+        var visibleCount = 0;
+        for (var i = 0; i < items.length; i++) {
+            var name = items[i].getAttribute("data-device-name");
+            var cust = deviceCustomerMap[name] || "";
+            if (!filter || cust === filter) {
+                items[i].style.display = "";
+                visibleCount++;
+            } else {
+                items[i].style.display = "none";
+            }
+        }
+        if (items.length > 0 && visibleCount === 0) {
+            show(elListEmpty);
+            elListEmpty.textContent = "Žádná zařízení pro tohoto zákazníka.";
+        } else if (items.length > 0) {
+            hide(elListEmpty);
+        }
+    }
+
+    elCustomerFilter.addEventListener("change", applyCustomerFilter);
+
     function loadDeviceList() {
         hide(elListEmpty);
         hide(elListError);
         hide(elExportBtn);
         hide(elImportBtn);
+        hide(elCustomerFilterRow);
         elDeviceList.innerHTML = '<p class="hint">Načítání...</p>';
 
         apiFetch("devices").then(function (r) {
@@ -562,9 +622,11 @@
             });
 
             elDeviceList.innerHTML = "";
+            deviceCustomerMap = {};
 
             if (devices.length === 0) {
                 show(elListEmpty);
+                elListEmpty.textContent = "Žádná zařízení. Přidejte první.";
                 show(elImportBtn);
                 return;
             }
@@ -574,6 +636,7 @@
                 var item = document.createElement("div");
                 item.className = "device-list-item";
                 item.textContent = name;
+                item.setAttribute("data-device-name", name);
                 item.addEventListener("click", function () {
                     openEditor({ name: name, sha: f.sha });
                 });
@@ -582,6 +645,25 @@
 
             show(elExportBtn);
             show(elImportBtn);
+            if (customers.length > 0) show(elCustomerFilterRow);
+
+            // Load customer assignments in background
+            devices.forEach(function (f) {
+                var name = f.name.replace(/\.txt$/, "");
+                apiFetch("devices/" + f.name).then(function (r) {
+                    if (!r.ok) return;
+                    return r.json();
+                }).then(function (data) {
+                    if (!data || !data.content) return;
+                    return decodeFileContent(data);
+                }).then(function (plaintext) {
+                    if (!plaintext) return;
+                    var device = S2DtRH.parseDeviceData(plaintext);
+                    deviceCustomerMap[name] = device.customer || "";
+                    // Re-apply filter if one is active
+                    if (elCustomerFilter.value) applyCustomerFilter();
+                }).catch(function () {});
+            });
         }).catch(function (err) {
             elDeviceList.innerHTML = "";
             elListError.textContent = "Chyba: " + err.message;
