@@ -313,11 +313,13 @@ p {
     color: #fff;
 }
 
-#save-btn {
+#save-btn,
+#cust-save-btn {
     background: #2563eb;
 }
 
-#save-btn:hover {
+#save-btn:hover,
+#cust-save-btn:hover {
     background: #1d4ed8;
 }
 
