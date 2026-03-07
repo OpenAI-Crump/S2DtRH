@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,35 +15,36 @@
 
     <!-- Login -->
     <div id="admin-login" class="card">
-        <h1>Administrace</h1>
-        <p>Přihlaste se pro správu zařízení.</p>
+        <div id="lang-sw-login"></div>
+        <h1 id="txt-admin-title"></h1>
+        <p id="txt-admin-prompt"></p>
         <form id="login-form" class="admin-form">
-            <input type="password" id="admin-pass" placeholder="Heslo administrátora" autocomplete="off">
+            <input type="password" id="admin-pass" autocomplete="off">
             <input type="text" id="github-pat" placeholder="GitHub Personal Access Token" autocomplete="off">
-            <button type="submit">Přihlásit</button>
+            <button type="submit" id="login-submit-btn"></button>
         </form>
-        <p id="login-error" class="error hidden">Neplatné heslo nebo PAT.</p>
+        <p id="login-error" class="error hidden"></p>
     </div>
 
     <!-- Navigation tabs -->
     <div id="admin-nav" class="card admin-nav hidden">
-        <button id="nav-devices" class="nav-tab active">Zařízení</button>
-        <button id="nav-customers" class="nav-tab">Zákazníci</button>
+        <button id="nav-devices" class="nav-tab active"></button>
+        <button id="nav-customers" class="nav-tab"></button>
     </div>
 
     <!-- Device list -->
     <div id="admin-panel" class="card hidden">
         <div class="panel-header">
-            <h1>Zařízení</h1>
-            <button id="new-device-btn" class="btn-small">+ Nové</button>
+            <h1 id="txt-devices-title"></h1>
+            <button id="new-device-btn" class="btn-small"></button>
         </div>
         <div id="customer-filter-row" class="hidden" style="margin-bottom:0.5rem;">
             <select id="customer-filter" style="width:100%;font-size:0.85rem;padding:0.4rem 0.6rem;border:1px solid #d0d5dd;border-radius:6px;background:#fff;appearance:none;-webkit-appearance:none;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23555' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 0.6rem center;padding-right:1.8rem;">
-                <option value="">All / Všichni</option>
+                <option value=""></option>
             </select>
         </div>
         <div id="device-list"></div>
-        <p id="list-empty" class="hint hidden">Žádná zařízení. Přidejte první.</p>
+        <p id="list-empty" class="hint hidden"></p>
         <p id="list-error" class="error hidden"></p>
         <div class="panel-actions">
             <button id="export-btn" class="btn-export hidden">
@@ -51,14 +52,14 @@
                     <path d="M8 2v8m0 0L5 7m3 3 3-3"/>
                     <path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2"/>
                 </svg>
-                Export zálohy (.zip)
+                <span id="txt-export-btn"></span>
             </button>
             <button id="import-btn" class="btn-export hidden">
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M8 10V2m0 0L5 5m3-3 3 3"/>
                     <path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2"/>
                 </svg>
-                Import zálohy (.zip)
+                <span id="txt-import-btn"></span>
             </button>
             <input type="file" id="import-file" accept=".zip" class="hidden">
         </div>
@@ -66,40 +67,40 @@
 
     <!-- Editor -->
     <div id="editor" class="card hidden">
-        <h1 id="editor-title">Nové zařízení</h1>
+        <h1 id="editor-title"></h1>
         <form id="editor-form" class="admin-form">
-            <label for="device-id-input">ID zařízení</label>
-            <input type="text" id="device-id-input" placeholder="napr. cerpadlo-A-S04" autocomplete="off">
-            <label for="device-content">Obsah</label>
-            <textarea id="device-content" rows="10" placeholder="Text zařízení..."></textarea>
-            <label for="inventory-link-input">Odkaz na inventář (volitelné)</label>
+            <label for="device-id-input" id="lbl-device-id"></label>
+            <input type="text" id="device-id-input" autocomplete="off">
+            <label for="device-content" id="lbl-content"></label>
+            <textarea id="device-content" rows="10"></textarea>
+            <label for="inventory-link-input" id="lbl-inventory"></label>
             <input type="url" id="inventory-link-input" placeholder="https://sharepoint.com/..." autocomplete="off">
-            <label for="service-tag-input">Dell Service Tag (volitelné)</label>
-            <input type="text" id="service-tag-input" placeholder="např. 8TFD1D4" autocomplete="off">
-            <label for="warranty-end-input">Konec záruky (volitelné)</label>
+            <label for="service-tag-input" id="lbl-service-tag"></label>
+            <input type="text" id="service-tag-input" placeholder="e.g. 8TFD1D4" autocomplete="off">
+            <label for="warranty-end-input" id="lbl-warranty"></label>
             <input type="date" id="warranty-end-input">
-            <label for="deployment-date-input">Datum nasazení (volitelné)</label>
+            <label for="deployment-date-input" id="lbl-deployment"></label>
             <input type="date" id="deployment-date-input">
-            <label for="customer-select">Zákazník (volitelné)</label>
+            <label for="customer-select" id="lbl-customer"></label>
             <select id="customer-select">
-                <option value="">— nevybráno —</option>
+                <option value=""></option>
             </select>
         </form>
-        <p class="hint">Text mezi _podtržítky_ se zobrazí <strong>tučně</strong>.</p>
+        <p id="txt-bold-hint" class="hint"></p>
         <div id="preview-box">
-            <div class="preview-label">Náhled</div>
+            <div class="preview-label" id="txt-preview-label"></div>
             <div id="preview-text"></div>
         </div>
         <div class="editor-actions">
-            <button id="save-btn">Uložit</button>
-            <button id="delete-btn" class="btn-danger hidden">Smazat</button>
-            <button id="back-btn" class="btn-secondary">Zpět</button>
+            <button id="save-btn"></button>
+            <button id="delete-btn" class="btn-danger hidden"></button>
+            <button id="back-btn" class="btn-secondary"></button>
         </div>
         <div id="device-link-box" class="device-link-box hidden">
-            <div class="preview-label">Odkaz na zařízení</div>
+            <div class="preview-label" id="txt-device-link-label"></div>
             <div class="device-link-row">
                 <a id="device-link" href="#" target="_blank" class="device-link"></a>
-                <button id="copy-link-btn" type="button" class="copy-btn" title="Kopírovat do schránky">
+                <button id="copy-link-btn" type="button" class="copy-btn">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/>
                         <path d="M10.5 5.5V3a1.5 1.5 0 0 0-1.5-1.5H3A1.5 1.5 0 0 0 1.5 3v6A1.5 1.5 0 0 0 3 10.5h2.5"/>
@@ -113,41 +114,41 @@
     <!-- Customer list -->
     <div id="customer-panel" class="card hidden">
         <div class="panel-header">
-            <h1>Zákazníci</h1>
-            <button id="new-customer-btn" class="btn-small">+ Nový</button>
+            <h1 id="txt-customers-title"></h1>
+            <button id="new-customer-btn" class="btn-small"></button>
         </div>
         <table id="customer-table" class="customer-table hidden">
             <thead>
-                <tr><th>IČO</th><th>DIČ</th><th>Název</th></tr>
+                <tr><th id="th-cin"></th><th id="th-vat"></th><th id="th-name"></th></tr>
             </thead>
             <tbody id="customer-tbody"></tbody>
         </table>
-        <p id="cust-list-empty" class="hint hidden">Žádní zákazníci.</p>
+        <p id="cust-list-empty" class="hint hidden"></p>
         <p id="cust-list-error" class="error hidden"></p>
     </div>
 
     <!-- Customer editor -->
     <div id="customer-editor" class="card hidden">
-        <h1 id="cust-editor-title">Nový zákazník</h1>
+        <h1 id="cust-editor-title"></h1>
         <form id="cust-editor-form" class="admin-form">
-            <label for="cust-cin-input">IČO</label>
+            <label for="cust-cin-input" id="lbl-cin"></label>
             <div class="input-with-btn">
                 <input type="text" id="cust-cin-input" placeholder="12345678" autocomplete="off" maxlength="8" inputmode="numeric">
-                <button type="button" id="ares-cin-btn" class="btn-small" title="Hledat v ARES">ARES</button>
+                <button type="button" id="ares-cin-btn" class="btn-small" title="ARES">ARES</button>
             </div>
-            <label for="cust-vat-input">DIČ</label>
+            <label for="cust-vat-input" id="lbl-vat"></label>
             <input type="text" id="cust-vat-input" placeholder="CZ12345678" autocomplete="off" maxlength="12">
-            <label for="cust-name-input">Název</label>
+            <label for="cust-name-input" id="lbl-name"></label>
             <div class="input-with-btn">
-                <input type="text" id="cust-name-input" placeholder="Název společnosti" autocomplete="off">
-                <button type="button" id="ares-name-btn" class="btn-small" title="Hledat v ARES">ARES</button>
+                <input type="text" id="cust-name-input" autocomplete="off">
+                <button type="button" id="ares-name-btn" class="btn-small" title="ARES">ARES</button>
             </div>
         </form>
         <div id="ares-results" class="ares-results hidden"></div>
         <div class="editor-actions">
-            <button id="cust-save-btn">Uložit</button>
-            <button id="cust-delete-btn" class="btn-danger hidden">Smazat</button>
-            <button id="cust-back-btn" class="btn-secondary">Zpět</button>
+            <button id="cust-save-btn"></button>
+            <button id="cust-delete-btn" class="btn-danger hidden"></button>
+            <button id="cust-back-btn" class="btn-secondary"></button>
         </div>
         <p id="cust-editor-status" class="hidden"></p>
     </div>
@@ -155,9 +156,12 @@
 </div>
 
 <script src="crypto.js"></script>
+<script src="i18n.js"></script>
 <script>
 (function () {
     "use strict";
+
+    var T = S2DtRH_i18n.t;
 
     var githubPat = "";
     var editingSha = null;
@@ -224,6 +228,80 @@
     var elCustBackBtn = document.getElementById("cust-back-btn");
     var elCustEditorStatus = document.getElementById("cust-editor-status");
     var editingCustomerIndex = -1;
+
+    // ---- i18n: apply all texts ----
+    function applyTexts() {
+        T = S2DtRH_i18n.t;
+        document.title = "Admin – " + T("pageTitle");
+
+        // Login
+        document.getElementById("txt-admin-title").textContent = T("adminTitle");
+        document.getElementById("txt-admin-prompt").textContent = T("adminPrompt");
+        elAdminPass.placeholder = T("adminPassPlaceholder");
+        elGithubPat.placeholder = T("adminPatPlaceholder");
+        document.getElementById("login-submit-btn").textContent = T("adminLogin");
+
+        // Nav
+        elNavDevices.textContent = T("navDevices");
+        elNavCustomers.textContent = T("navCustomers");
+
+        // Device list
+        document.getElementById("txt-devices-title").textContent = T("devicesPanelTitle");
+        elNewBtn.textContent = T("newDeviceBtn");
+        document.getElementById("txt-export-btn").textContent = T("exportBtn");
+        document.getElementById("txt-import-btn").textContent = T("importBtn");
+
+        // Editor labels
+        document.getElementById("lbl-device-id").textContent = T("labelDeviceId");
+        elDeviceIdInput.placeholder = T("placeholderDeviceId");
+        document.getElementById("lbl-content").textContent = T("labelContent");
+        elDeviceContent.placeholder = T("placeholderContent");
+        document.getElementById("lbl-inventory").textContent = T("labelInventory");
+        document.getElementById("lbl-service-tag").textContent = T("labelServiceTag");
+        document.getElementById("lbl-warranty").textContent = T("labelWarranty");
+        document.getElementById("lbl-deployment").textContent = T("labelDeployment");
+        document.getElementById("lbl-customer").textContent = T("labelCustomer");
+        document.getElementById("txt-bold-hint").innerHTML = T("boldHint");
+        document.getElementById("txt-preview-label").textContent = T("previewLabel");
+        document.getElementById("txt-device-link-label").textContent = T("deviceLinkLabel");
+        elCopyLinkBtn.title = T("copyTooltip");
+        elSaveBtn.textContent = T("saveBtn");
+        elDeleteBtn.textContent = T("deleteBtn");
+        elBackBtn.textContent = T("backBtn");
+
+        // Customer panel
+        document.getElementById("txt-customers-title").textContent = T("customersPanelTitle");
+        elNewCustBtn.textContent = T("newCustomerBtn");
+        elCustListEmpty.textContent = T("noCustomers");
+        document.getElementById("th-cin").textContent = T("labelCin");
+        document.getElementById("th-vat").textContent = T("labelVat");
+        document.getElementById("th-name").textContent = T("labelName");
+
+        // Customer editor
+        document.getElementById("lbl-cin").textContent = T("labelCin");
+        document.getElementById("lbl-vat").textContent = T("labelVat");
+        document.getElementById("lbl-name").textContent = T("labelName");
+        elCustName.placeholder = T("placeholderName");
+        elCustSaveBtn.textContent = T("saveBtn");
+        elCustDeleteBtn.textContent = T("deleteBtn");
+        elCustBackBtn.textContent = T("backBtn");
+
+        // Refresh selects with translated texts
+        refreshCustomerSelect();
+    }
+
+    // Insert lang switcher in login card
+    document.getElementById("lang-sw-login").appendChild(S2DtRH_i18n.createLangSwitcher());
+
+    document.addEventListener("langchange", function () {
+        applyTexts();
+        var lang = S2DtRH_i18n.currentLang();
+        document.querySelectorAll(".lang-btn").forEach(function (b) {
+            b.classList.toggle("active", b.getAttribute("data-lang") === lang);
+        });
+    });
+
+    applyTexts();
 
     function show(el) { el.classList.remove("hidden"); }
     function hide(el) { el.classList.add("hidden"); }
@@ -303,7 +381,6 @@
                 }
             });
             refreshCustomerSelect();
-            // Show filter if devices are already loaded
             if (elDeviceList.children.length > 0 && customers.length > 0) {
                 show(elCustomerFilterRow);
             }
@@ -311,15 +388,35 @@
     }
 
     function refreshCustomerSelect() {
-        elCustomerSelect.innerHTML = '<option value="">— nevybráno —</option>';
-        var currentFilter = elCustomerFilter.value;
-        elCustomerFilter.innerHTML = '<option value="">All / Všichni</option>';
+        // Device editor customer select
+        elCustomerSelect.innerHTML = "";
+        var optNone = document.createElement("option");
+        optNone.value = "";
+        optNone.textContent = T("customerNone");
+        elCustomerSelect.appendChild(optNone);
+
         customers.forEach(function (c) {
             var opt = document.createElement("option");
             opt.value = c.name;
             opt.textContent = c.name;
             elCustomerSelect.appendChild(opt);
+        });
 
+        // "Add new customer" option
+        var optAdd = document.createElement("option");
+        optAdd.value = "__add_new__";
+        optAdd.textContent = T("customerAddNew");
+        elCustomerSelect.appendChild(optAdd);
+
+        // Customer filter dropdown
+        var currentFilter = elCustomerFilter.value;
+        elCustomerFilter.innerHTML = "";
+        var optAll = document.createElement("option");
+        optAll.value = "";
+        optAll.textContent = T("filterAll");
+        elCustomerFilter.appendChild(optAll);
+
+        customers.forEach(function (c) {
             var fopt = document.createElement("option");
             fopt.value = c.name;
             fopt.textContent = c.name;
@@ -327,6 +424,17 @@
         });
         elCustomerFilter.value = currentFilter;
     }
+
+    // Handle "Add new customer" selection
+    elCustomerSelect.addEventListener("change", function () {
+        if (elCustomerSelect.value === "__add_new__") {
+            elCustomerSelect.value = "";
+            // Save device first (without customer), then go to customer editor
+            hide(elEditor);
+            showCustomersView();
+            openCustomerEditor(-1);
+        }
+    });
 
     function customersToCSV() {
         return customers.map(function (c) {
@@ -391,13 +499,13 @@
 
         if (idx >= 0) {
             var c = customers[idx];
-            elCustEditorTitle.textContent = "Upravit: " + c.name;
+            elCustEditorTitle.textContent = T("custEditorEdit") + c.name;
             elCustCin.value = c.cin;
             elCustVat.value = c.vat;
             elCustName.value = c.name;
             show(elCustDeleteBtn);
         } else {
-            elCustEditorTitle.textContent = "Nový zákazník";
+            elCustEditorTitle.textContent = T("custEditorNew");
             elCustCin.value = "";
             elCustVat.value = "";
             elCustName.value = "";
@@ -429,13 +537,13 @@
         var name = elCustName.value.trim();
 
         if (!cin || !validateCIN(cin)) {
-            showCustStatus("IČO musí být přesně 8 číslic.", true); return;
+            showCustStatus(T("cinError"), true); return;
         }
         if (vat && !validateVAT(vat)) {
-            showCustStatus("DIČ musí být ve formátu CZ + 8–10 číslic (např. CZ12345678).", true); return;
+            showCustStatus(T("vatError"), true); return;
         }
         if (!name) {
-            showCustStatus("Zadejte název zákazníka.", true); return;
+            showCustStatus(T("nameError"), true); return;
         }
 
         var entry = { cin: cin, vat: vat, name: name };
@@ -446,21 +554,21 @@
         }
 
         elCustSaveBtn.disabled = true;
-        elCustSaveBtn.textContent = "Ukládání...";
+        elCustSaveBtn.textContent = T("saving");
 
         saveCustomersFile().then(function (data) {
             if (data.content) {
                 editingCustomerIndex = customers.indexOf(entry);
                 show(elCustDeleteBtn);
-                showCustStatus("Uloženo.", false);
+                showCustStatus(T("custSaved"), false);
             } else {
-                showCustStatus("Chyba: " + (data.message || "Neznámá chyba"), true);
+                showCustStatus(T("errorPrefix") + (data.message || "Unknown"), true);
             }
         }).catch(function (err) {
-            showCustStatus("Chyba: " + err.message, true);
+            showCustStatus(T("errorPrefix") + err.message, true);
         }).then(function () {
             elCustSaveBtn.disabled = false;
-            elCustSaveBtn.textContent = "Uložit";
+            elCustSaveBtn.textContent = T("saveBtn");
         });
     });
 
@@ -468,26 +576,25 @@
     elCustDeleteBtn.addEventListener("click", function () {
         if (editingCustomerIndex < 0) return;
         var name = customers[editingCustomerIndex].name;
-        if (!confirm('Opravdu smazat zákazníka "' + name + '"?')) return;
+        if (!confirm(T("custDeleteConfirm").replace("{name}", name))) return;
 
         customers.splice(editingCustomerIndex, 1);
         elCustDeleteBtn.disabled = true;
-        elCustDeleteBtn.textContent = "Mazání...";
+        elCustDeleteBtn.textContent = T("deleting");
 
         saveCustomersFile().then(function () {
             hide(elCustEditor);
             show(elCustPanel);
             renderCustomerTable();
         }).catch(function (err) {
-            showCustStatus("Chyba: " + err.message, true);
+            showCustStatus(T("errorPrefix") + err.message, true);
         }).then(function () {
             elCustDeleteBtn.disabled = false;
-            elCustDeleteBtn.textContent = "Smazat";
+            elCustDeleteBtn.textContent = T("deleteBtn");
         });
     });
 
     // ---- ARES ----
-    // Set your Cloudflare Worker URL here (see ares-worker.js for setup):
     var ARES_PROXY_URL = "";  // e.g. "https://ares-proxy.your-subdomain.workers.dev"
     var ARES_BASE = "https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty";
 
@@ -496,7 +603,6 @@
         var method = options.method || "GET";
         var bodyStr = options.body ? JSON.stringify(options.body) : null;
 
-        // If Cloudflare Worker proxy is configured, use it directly
         if (ARES_PROXY_URL) {
             var workerUrl = ARES_PROXY_URL.replace(/\/+$/, "") + "/" + aresPath;
             var fetchOpts = {
@@ -513,7 +619,6 @@
             });
         }
 
-        // Fallback: try direct, then public CORS proxies
         var fullUrl = ARES_BASE + "/" + aresPath;
         var urls = [
             fullUrl,
@@ -523,7 +628,7 @@
         var idx = 0;
 
         function tryNext() {
-            if (idx >= urls.length) return Promise.reject(new Error("ARES nedostupný – nastavte ARES_PROXY_URL (viz ares-worker.js)"));
+            if (idx >= urls.length) return Promise.reject(new Error(T("aresUnavailable")));
             var tryUrl = urls[idx];
             idx++;
             var fetchOpts = {
@@ -548,7 +653,7 @@
     function aresLookupByCin(cin) {
         hide(elAresResults);
         if (!cin || !/^\d{1,8}$/.test(cin)) {
-            showCustStatus("Zadejte platné IČO (až 8 číslic).", true); return;
+            showCustStatus(T("aresCinHint"), true); return;
         }
         elAresCinBtn.disabled = true;
         elAresCinBtn.textContent = "...";
@@ -557,9 +662,9 @@
             elCustCin.value = data.ico || cin;
             elCustVat.value = data.dic || "";
             elCustName.value = data.obchodniJmeno || "";
-            showCustStatus("Načteno z ARES.", false);
+            showCustStatus(T("aresLoaded"), false);
         }).catch(function (err) {
-            showCustStatus("ARES: Subjekt nenalezen (" + err.message + ").", true);
+            showCustStatus(T("aresNotFound") + " (" + err.message + ").", true);
         }).then(function () {
             elAresCinBtn.disabled = false;
             elAresCinBtn.textContent = "ARES";
@@ -569,7 +674,7 @@
     function aresSearchByName(query) {
         hide(elAresResults);
         if (!query || query.length < 2) {
-            showCustStatus("Zadejte alespoň 2 znaky pro vyhledávání.", true); return;
+            showCustStatus(T("aresNameHint"), true); return;
         }
         elAresNameBtn.disabled = true;
         elAresNameBtn.textContent = "...";
@@ -577,7 +682,7 @@
         aresFetch("vyhledat", { method: "POST", body: { obchodniJmeno: query, start: 0, pocet: 10 } }).then(function (data) {
             var items = (data.ekonomickeSubjekty || []);
             if (items.length === 0) {
-                showCustStatus("ARES: žádné výsledky.", true);
+                showCustStatus(T("aresNoResults"), true);
                 return;
             }
             elAresResults.innerHTML = "";
@@ -597,7 +702,7 @@
             });
             show(elAresResults);
         }).catch(function (err) {
-            showCustStatus("ARES: vyhledávání selhalo.", true);
+            showCustStatus(T("aresSearchFail"), true);
         }).then(function () {
             elAresNameBtn.disabled = false;
             elAresNameBtn.textContent = "ARES";
@@ -628,7 +733,7 @@
         }
         if (items.length > 0 && visibleCount === 0) {
             show(elListEmpty);
-            elListEmpty.textContent = "Žádná zařízení pro tohoto zákazníka.";
+            elListEmpty.textContent = T("listFilterEmpty");
         } else if (items.length > 0) {
             hide(elListEmpty);
         }
@@ -642,7 +747,7 @@
         hide(elExportBtn);
         hide(elImportBtn);
         hide(elCustomerFilterRow);
-        elDeviceList.innerHTML = '<p class="hint">Načítání...</p>';
+        elDeviceList.innerHTML = '<p class="hint">' + T("loadingText") + '</p>';
 
         apiFetch("devices").then(function (r) {
             if (r.status === 404) return [];
@@ -658,7 +763,7 @@
 
             if (devices.length === 0) {
                 show(elListEmpty);
-                elListEmpty.textContent = "Žádná zařízení. Přidejte první.";
+                elListEmpty.textContent = T("listEmpty");
                 show(elImportBtn);
                 return;
             }
@@ -679,7 +784,6 @@
             show(elImportBtn);
             if (customers.length > 0) show(elCustomerFilterRow);
 
-            // Load customer assignments in background
             devices.forEach(function (f) {
                 var name = f.name.replace(/\.txt$/, "");
                 apiFetch("devices/" + f.name).then(function (r) {
@@ -692,13 +796,12 @@
                     if (!plaintext) return;
                     var device = S2DtRH.parseDeviceData(plaintext);
                     deviceCustomerMap[name] = device.customer || "";
-                    // Re-apply filter if one is active
                     if (elCustomerFilter.value) applyCustomerFilter();
                 }).catch(function () {});
             });
         }).catch(function (err) {
             elDeviceList.innerHTML = "";
-            elListError.textContent = "Chyba: " + err.message;
+            elListError.textContent = T("errorPrefix") + err.message;
             show(elListError);
         });
     }
@@ -726,14 +829,14 @@
         elCustomerSelect.value = "";
 
         if (dev) {
-            elEditorTitle.textContent = "Upravit: " + dev.name;
+            elEditorTitle.textContent = T("editorEditTitle") + dev.name;
             elDeviceIdInput.value = dev.name;
             elDeviceIdInput.readOnly = true;
             editingSha = dev.sha;
             editingName = dev.name;
             show(elDeleteBtn);
 
-            elDeviceContent.value = "Načítání...";
+            elDeviceContent.value = T("loadingText");
             elDeviceContent.disabled = true;
             updateDeviceLink();
 
@@ -742,7 +845,7 @@
                 return r.json();
             }).then(function (data) {
                 editingSha = data.sha;
-                if (!data.content) throw new Error("Prázdný soubor");
+                if (!data.content) throw new Error(T("emptyFile"));
                 return decodeFileContent(data);
             }).then(function (plaintext) {
                 var device = S2DtRH.parseDeviceData(plaintext);
@@ -757,10 +860,10 @@
             }).catch(function (err) {
                 elDeviceContent.value = "";
                 elDeviceContent.disabled = false;
-                showStatus("Nepodařilo se načíst: " + err.message, true);
+                showStatus(T("loadError") + err.message, true);
             });
         } else {
-            elEditorTitle.textContent = "Nové zařízení";
+            elEditorTitle.textContent = T("editorNewTitle");
             elDeviceIdInput.value = "";
             elDeviceIdInput.readOnly = false;
             elDeviceContent.value = "";
@@ -805,15 +908,15 @@
         var deploymentDate = elDeploymentDate.value;
         var customer = elCustomerSelect.value;
 
-        if (!id) { showStatus("Zadejte ID zařízení.", true); return; }
+        if (!id) { showStatus(T("enterDeviceId"), true); return; }
         if (!/^[a-zA-Z0-9_\-]+$/.test(id)) {
-            showStatus("ID může obsahovat pouze písmena, čísla, pomlčky a podtržítka.", true);
+            showStatus(T("idFormatError"), true);
             return;
         }
-        if (!content.trim()) { showStatus("Obsah nesmí být prázdný.", true); return; }
+        if (!content.trim()) { showStatus(T("contentEmpty"), true); return; }
 
         elSaveBtn.disabled = true;
-        elSaveBtn.textContent = "Ukládání...";
+        elSaveBtn.textContent = T("saving");
 
         var deviceData = S2DtRH.serializeDeviceData({
             content: content,
@@ -843,29 +946,29 @@
                 editingName = id;
                 elDeviceIdInput.readOnly = true;
                 show(elDeleteBtn);
-                showStatus("Uloženo.", false);
+                showStatus(T("saved"), false);
             } else {
-                showStatus("Chyba: " + (data.message || "Neznámá chyba"), true);
+                showStatus(T("errorPrefix") + (data.message || "Unknown"), true);
             }
         }).catch(function (err) {
-            showStatus("Chyba: " + err.message, true);
+            showStatus(T("errorPrefix") + err.message, true);
         }).then(function () {
             elSaveBtn.disabled = false;
-            elSaveBtn.textContent = "Uložit";
+            elSaveBtn.textContent = T("saveBtn");
         });
     });
 
     // Delete
     elDeleteBtn.addEventListener("click", function () {
         if (!editingName) return;
-        if (!confirm('Opravdu smazat zařízení "' + editingName + '"?')) return;
+        if (!confirm(T("deleteConfirm").replace("{name}", editingName))) return;
 
         var deviceName = editingName;
         elDeleteBtn.disabled = true;
-        elDeleteBtn.textContent = "Mazání...";
+        elDeleteBtn.textContent = T("deleting");
 
         apiFetch("devices/" + deviceName + ".txt").then(function (r) {
-            if (!r.ok) throw new Error("Soubor nenalezen (HTTP " + r.status + ")");
+            if (!r.ok) throw new Error("HTTP " + r.status);
             return r.json();
         }).then(function (data) {
             return apiFetch("devices/" + deviceName + ".txt", {
@@ -878,14 +981,13 @@
         }).then(function (r) {
             if (!r.ok) {
                 return r.json().then(function (d) {
-                    throw new Error(d.message || "Nepodařilo se smazat");
+                    throw new Error(d.message || "Delete failed");
                 });
             }
             editingSha = null;
             editingName = "";
             hide(elEditor);
             show(elPanel);
-            // Remove item from list immediately (optimistic)
             var items = elDeviceList.querySelectorAll(".device-list-item");
             for (var i = 0; i < items.length; i++) {
                 if (items[i].textContent === deviceName) {
@@ -898,10 +1000,10 @@
                 hide(elExportBtn);
             }
         }).catch(function (err) {
-            showStatus("Chyba při mazání: " + err.message, true);
+            showStatus(T("deleteError") + err.message, true);
         }).then(function () {
             elDeleteBtn.disabled = false;
-            elDeleteBtn.textContent = "Smazat";
+            elDeleteBtn.textContent = T("deleteBtn");
         });
     });
 
@@ -919,10 +1021,10 @@
     elCopyLinkBtn.addEventListener("click", function () {
         var url = elDeviceLink.href;
         navigator.clipboard.writeText(url).then(function () {
-            elCopyLinkBtn.title = "Zkopírováno!";
+            elCopyLinkBtn.title = T("copiedTooltip");
             elCopyLinkBtn.classList.add("copied");
             setTimeout(function () {
-                elCopyLinkBtn.title = "Kopírovat do schránky";
+                elCopyLinkBtn.title = T("copyTooltip");
                 elCopyLinkBtn.classList.remove("copied");
             }, 1500);
         });
@@ -931,7 +1033,8 @@
     // Export all devices as ZIP
     elExportBtn.addEventListener("click", function () {
         elExportBtn.disabled = true;
-        elExportBtn.textContent = "Exportování...";
+        var txtSpan = document.getElementById("txt-export-btn");
+        txtSpan.textContent = T("exportInProgress");
 
         apiFetch("devices").then(function (r) {
             if (!r.ok) throw new Error("HTTP " + r.status);
@@ -970,10 +1073,10 @@
             a.click();
             URL.revokeObjectURL(a.href);
         }).catch(function (err) {
-            alert("Export selhal: " + err.message);
+            alert(T("exportFail") + err.message);
         }).then(function () {
             elExportBtn.disabled = false;
-            elExportBtn.textContent = "Export zálohy (.zip)";
+            txtSpan.textContent = T("exportBtn");
         });
     });
 
@@ -987,10 +1090,11 @@
         if (!file) return;
         elImportFile.value = "";
 
-        if (!confirm("Importovat zálohu? Existující soubory se přepíší.")) return;
+        if (!confirm(T("importConfirm"))) return;
 
         elImportBtn.disabled = true;
-        elImportBtn.textContent = "Importování...";
+        var txtSpan = document.getElementById("txt-import-btn");
+        txtSpan.textContent = T("importInProgress");
 
         var existingFiles = {};
 
@@ -1035,24 +1139,24 @@
                     }).then(function (r) {
                         if (!r.ok) {
                             return r.json().then(function (d) {
-                                throw new Error(entry.name + ": " + (d.message || "Chyba"));
+                                throw new Error(entry.name + ": " + (d.message || "Error"));
                             });
                         }
                         imported++;
-                        elImportBtn.textContent = "Importováno " + imported + "/" + entries.length + "...";
+                        txtSpan.textContent = imported + "/" + entries.length + "...";
                     });
                 });
             });
             return chain;
         }).then(function () {
             loadDeviceList();
-            alert("Import dokončen.");
+            alert(T("importDone"));
         }).catch(function (err) {
-            alert("Import selhal: " + err.message);
+            alert(T("importFail") + err.message);
             loadDeviceList();
         }).then(function () {
             elImportBtn.disabled = false;
-            elImportBtn.textContent = "Import zálohy (.zip)";
+            txtSpan.textContent = T("importBtn");
         });
     });
 
@@ -1064,7 +1168,7 @@
         githubPat = elGithubPat.value.trim();
 
         if (!githubPat) {
-            elLoginError.textContent = "Zadejte GitHub PAT.";
+            elLoginError.textContent = T("loginEnterPat");
             show(elLoginError);
             return;
         }
@@ -1077,7 +1181,7 @@
                 loadCustomers();
                 loadDeviceList();
             } else {
-                elLoginError.textContent = "Neplatné heslo.";
+                elLoginError.textContent = T("loginInvalidPass");
                 show(elLoginError);
                 elAdminPass.value = "";
                 elAdminPass.focus();

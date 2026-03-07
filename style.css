@@ -566,3 +566,40 @@ p {
 .ares-item small {
     color: #888;
 }
+
+/* Language switcher */
+
+.lang-switcher {
+    display: flex;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.5rem 0;
+}
+
+.lang-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 24px;
+    padding: 2px;
+    background: #fff;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.15s, border-color 0.15s;
+}
+
+.lang-btn:hover {
+    opacity: 0.8;
+}
+
+.lang-btn.active {
+    opacity: 1;
+    border-color: #2563eb;
+}
+
+.lang-btn svg {
+    display: block;
+}
