@@ -466,8 +466,16 @@
         });
     });
 
-    // ---- ARES ----
+    // ---- ARES (via CORS proxy) ----
     var ARES_BASE = "https://ares.gov.cz/ekonomicke-subjekty-v-registru-osob/rest/ekonomicke-subjekty";
+    var PROXY = "https://api.allorigins.win/raw?url=";
+
+    function aresFetch(url) {
+        return fetch(PROXY + encodeURIComponent(url)).then(function (r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.json();
+        });
+    }
 
     function aresLookupByCin(cin) {
         hide(elAresResults);
@@ -477,16 +485,13 @@
         elAresCinBtn.disabled = true;
         elAresCinBtn.textContent = "...";
 
-        fetch(ARES_BASE + "/" + cin).then(function (r) {
-            if (!r.ok) throw new Error("Subjekt nenalezen (HTTP " + r.status + ")");
-            return r.json();
-        }).then(function (data) {
+        aresFetch(ARES_BASE + "/" + cin).then(function (data) {
             elCustCin.value = data.ico || cin;
             elCustVat.value = data.dic || "";
             elCustName.value = data.obchodniJmeno || "";
             showCustStatus("Načteno z ARES.", false);
         }).catch(function (err) {
-            showCustStatus("ARES: " + err.message, true);
+            showCustStatus("ARES: Subjekt nenalezen.", true);
         }).then(function () {
             elAresCinBtn.disabled = false;
             elAresCinBtn.textContent = "ARES";
@@ -501,14 +506,8 @@
         elAresNameBtn.disabled = true;
         elAresNameBtn.textContent = "...";
 
-        fetch(ARES_BASE + "/vyhledat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ obchodniJmeno: query, start: 0, pocet: 10 })
-        }).then(function (r) {
-            if (!r.ok) throw new Error("Vyhledávání selhalo (HTTP " + r.status + ")");
-            return r.json();
-        }).then(function (data) {
+        var url = ARES_BASE + "/vyhledat?obchodniJmeno=" + encodeURIComponent(query) + "&start=0&pocet=10";
+        aresFetch(url).then(function (data) {
             var items = (data.ekonomickeSubjekty || []);
             if (items.length === 0) {
                 showCustStatus("ARES: žádné výsledky.", true);
@@ -531,7 +530,7 @@
             });
             show(elAresResults);
         }).catch(function (err) {
-            showCustStatus("ARES: " + err.message, true);
+            showCustStatus("ARES: vyhledávání selhalo.", true);
         }).then(function () {
             elAresNameBtn.disabled = false;
             elAresNameBtn.textContent = "ARES";
