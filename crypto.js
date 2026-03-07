@@ -106,18 +106,20 @@
                     return {
                         content: data.content,
                         inventoryLink: data.inventoryLink || "",
-                        serviceTag: data.serviceTag || ""
+                        serviceTag: data.serviceTag || "",
+                        warrantyEnd: data.warrantyEnd || ""
                     };
                 }
             } catch (e) {}
-            return { content: decrypted, inventoryLink: "", serviceTag: "" };
+            return { content: decrypted, inventoryLink: "", serviceTag: "", warrantyEnd: "" };
         },
 
-        serializeDeviceData: function (content, inventoryLink, serviceTag) {
+        serializeDeviceData: function (content, inventoryLink, serviceTag, warrantyEnd) {
             return JSON.stringify({
                 content: content,
                 inventoryLink: inventoryLink || "",
-                serviceTag: serviceTag || ""
+                serviceTag: serviceTag || "",
+                warrantyEnd: warrantyEnd || ""
             });
         }
     };
