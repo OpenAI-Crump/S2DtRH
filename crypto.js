@@ -107,19 +107,23 @@
                         content: data.content,
                         inventoryLink: data.inventoryLink || "",
                         serviceTag: data.serviceTag || "",
-                        warrantyEnd: data.warrantyEnd || ""
+                        warrantyEnd: data.warrantyEnd || "",
+                        deploymentDate: data.deploymentDate || "",
+                        customer: data.customer || ""
                     };
                 }
             } catch (e) {}
-            return { content: decrypted, inventoryLink: "", serviceTag: "", warrantyEnd: "" };
+            return { content: decrypted, inventoryLink: "", serviceTag: "", warrantyEnd: "", deploymentDate: "", customer: "" };
         },
 
-        serializeDeviceData: function (content, inventoryLink, serviceTag, warrantyEnd) {
+        serializeDeviceData: function (fields) {
             return JSON.stringify({
-                content: content,
-                inventoryLink: inventoryLink || "",
-                serviceTag: serviceTag || "",
-                warrantyEnd: warrantyEnd || ""
+                content: fields.content || "",
+                inventoryLink: fields.inventoryLink || "",
+                serviceTag: fields.serviceTag || "",
+                warrantyEnd: fields.warrantyEnd || "",
+                deploymentDate: fields.deploymentDate || "",
+                customer: fields.customer || ""
             });
         }
     };

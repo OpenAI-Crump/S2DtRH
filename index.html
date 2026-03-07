@@ -50,7 +50,7 @@
     <div id="device-content" class="card hidden">
         <h1 id="device-title"></h1>
         <div id="device-text"></div>
-        <p id="warranty-info" class="warranty-info hidden"></p>
+        <div id="device-meta" class="device-meta hidden"></div>
         <div id="device-actions" class="device-actions hidden">
             <a id="inventory-btn" href="#" target="_blank" class="action-btn hidden">Show in inventory</a>
             <a id="dell-btn" href="#" target="_blank" class="action-btn hidden">Show in Dell support</a>
@@ -83,7 +83,7 @@
     var elDeviceActions = document.getElementById("device-actions");
     var elInventoryBtn = document.getElementById("inventory-btn");
     var elDellBtn = document.getElementById("dell-btn");
-    var elWarrantyInfo = document.getElementById("warranty-info");
+    var elDeviceMeta = document.getElementById("device-meta");
 
     function show(el) { el.classList.remove("hidden"); }
     function hide(el) { el.classList.add("hidden"); }
@@ -131,9 +131,17 @@
                         show(elDellBtn);
                         hasActions = true;
                     }
-                    if (device.warrantyEnd) {
-                        elWarrantyInfo.textContent = "Warranty until: " + device.warrantyEnd;
-                        show(elWarrantyInfo);
+                    var metaLines = [];
+                    if (device.customer) metaLines.push("Customer: " + device.customer);
+                    if (device.deploymentDate) metaLines.push("Deployed: " + device.deploymentDate);
+                    if (device.warrantyEnd) metaLines.push("Warranty until: " + device.warrantyEnd);
+                    if (metaLines.length) {
+                        elDeviceMeta.innerHTML = metaLines.map(function (l) {
+                            var d = document.createElement("div");
+                            d.textContent = l;
+                            return d.outerHTML;
+                        }).join("");
+                        show(elDeviceMeta);
                     }
                     if (hasActions) show(elDeviceActions);
                     show(elContent);

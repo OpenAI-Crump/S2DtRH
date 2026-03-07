@@ -67,6 +67,12 @@
             <input type="text" id="service-tag-input" placeholder="např. 8TFD1D4" autocomplete="off">
             <label for="warranty-end-input">Konec záruky (volitelné)</label>
             <input type="date" id="warranty-end-input">
+            <label for="deployment-date-input">Datum nasazení (volitelné)</label>
+            <input type="date" id="deployment-date-input">
+            <label for="customer-select">Zákazník (volitelné)</label>
+            <select id="customer-select">
+                <option value="">— nevybráno —</option>
+            </select>
         </form>
         <p class="hint">Text mezi _podtržítky_ se zobrazí <strong>tučně</strong>.</p>
         <div id="preview-box">
@@ -126,6 +132,9 @@
     var elInventoryLink = document.getElementById("inventory-link-input");
     var elServiceTag = document.getElementById("service-tag-input");
     var elWarrantyEnd = document.getElementById("warranty-end-input");
+    var elDeploymentDate = document.getElementById("deployment-date-input");
+    var elCustomerSelect = document.getElementById("customer-select");
+    var customers = [];
     var elPreviewText = document.getElementById("preview-text");
     var elSaveBtn = document.getElementById("save-btn");
     var elDeleteBtn = document.getElementById("delete-btn");
@@ -156,6 +165,34 @@
         options.headers["Accept"] = "application/vnd.github.v3+json";
         if (options.body) options.headers["Content-Type"] = "application/json";
         return fetch(apiUrl(path), options);
+    }
+
+    function loadCustomers() {
+        apiFetch("customers.txt").then(function (r) {
+            if (!r.ok) return;
+            return r.json();
+        }).then(function (data) {
+            if (!data || !data.content) return;
+            var binary = atob(data.content.replace(/\s/g, ""));
+            var bytes = new Uint8Array(binary.length);
+            for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            var text = new TextDecoder("utf-8").decode(bytes);
+            var lines = text.split("\n").filter(function (l) { return l.trim(); });
+            customers = [];
+            // Keep only the default option
+            elCustomerSelect.innerHTML = '<option value="">— nevybráno —</option>';
+            lines.forEach(function (line) {
+                var parts = line.split(",");
+                if (parts.length >= 3) {
+                    var name = parts.slice(2).join(",").trim();
+                    customers.push({ cin: parts[0].trim(), vat: parts[1].trim(), name: name });
+                    var opt = document.createElement("option");
+                    opt.value = name;
+                    opt.textContent = name;
+                    elCustomerSelect.appendChild(opt);
+                }
+            });
+        }).catch(function () {});
     }
 
     function loadDeviceList() {
@@ -221,6 +258,8 @@
         elInventoryLink.value = "";
         elServiceTag.value = "";
         elWarrantyEnd.value = "";
+        elDeploymentDate.value = "";
+        elCustomerSelect.value = "";
 
         if (dev) {
             elEditorTitle.textContent = "Upravit: " + dev.name;
@@ -247,6 +286,8 @@
                 elInventoryLink.value = device.inventoryLink;
                 elServiceTag.value = device.serviceTag;
                 elWarrantyEnd.value = device.warrantyEnd;
+                elDeploymentDate.value = device.deploymentDate;
+                elCustomerSelect.value = device.customer;
                 elDeviceContent.disabled = false;
                 updatePreview();
             }).catch(function (err) {
@@ -297,6 +338,8 @@
         var inventoryLink = elInventoryLink.value.trim();
         var serviceTag = elServiceTag.value.trim();
         var warrantyEnd = elWarrantyEnd.value;
+        var deploymentDate = elDeploymentDate.value;
+        var customer = elCustomerSelect.value;
 
         if (!id) { showStatus("Zadejte ID zařízení.", true); return; }
         if (!/^[a-zA-Z0-9_\-]+$/.test(id)) {
@@ -308,7 +351,14 @@
         elSaveBtn.disabled = true;
         elSaveBtn.textContent = "Ukládání...";
 
-        var deviceData = S2DtRH.serializeDeviceData(content, inventoryLink, serviceTag, warrantyEnd);
+        var deviceData = S2DtRH.serializeDeviceData({
+            content: content,
+            inventoryLink: inventoryLink,
+            serviceTag: serviceTag,
+            warrantyEnd: warrantyEnd,
+            deploymentDate: deploymentDate,
+            customer: customer
+        });
 
         S2DtRH.encrypt(deviceData).then(function (encrypted) {
             var body = {
@@ -559,6 +609,7 @@
             if (hash === S2DtRH.ADMIN_HASH) {
                 hide(elLogin);
                 show(elPanel);
+                loadCustomers();
                 loadDeviceList();
             } else {
                 elLoginError.textContent = "Neplatné heslo.";
